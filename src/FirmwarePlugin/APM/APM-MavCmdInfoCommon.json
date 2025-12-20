@@ -50,7 +50,8 @@
                 "label":            "Setting",
                 "enumStrings":      "On,Off",
                 "enumValues":       "1,0",
-                "default":          1
+                "default":          1,
+                "advanced":        false
             }
         },
         {
@@ -66,19 +67,22 @@
                 "label":            "Pitch",
                 "default":          0,
                 "units":            "deg",
-                "decimalPlaces":    2
+                "decimalPlaces":    2,
+                "advanced":        false
             },
             "param2": {
                 "label":            "Roll",
                 "default":          0,
                 "units":            "deg",
-                "decimalPlaces":    2
+                "decimalPlaces":    2,
+                "advanced":        false
             },
             "param3": {
                 "label":            "Yaw",
                 "default":          0,
                 "units":            "deg",
-                "decimalPlaces":    2
+                "decimalPlaces":    2,
+                "advanced":        false
             }
         },
         {
@@ -88,7 +92,8 @@
                 "label":            "Enable",
                 "enumStrings":      "Enable,Disable",
                 "enumValues":       "1,0",
-                "default":          1
+                "default":          1,
+                "advanced":        false
             }
         }
     ]

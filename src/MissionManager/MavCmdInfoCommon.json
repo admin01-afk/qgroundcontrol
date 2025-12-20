@@ -16,12 +16,14 @@
             "param5": {
                 "label":            "Latitude",
                 "default":          37.803784,
-                "decimalPlaces":    7
+                "decimalPlaces":    7,
+                "advanced":        false
             },
             "param6": {
                 "label":            "Longitude",
                 "default":          -122.462276,
-                "decimalPlaces":    7
+                "decimalPlaces":    7,
+                "advanced":        false
             }
         },
         {
@@ -39,20 +41,23 @@
                 "decimalPlaces":    0,
                 "min":              0,
                 "userMin":          0,
-                "userMax":          600
+                "userMax":          600,
+                "advanced":        true
             },
             "param2": {
                 "label":            "Acceptance",
                 "units":            "m",
                 "default":          0,
                 "decimalPlaces":    2,
-                "min":              0
+                "min":              0,
+                "advanced":        true
             },
             "param3": {
                 "label":            "Pass Radius",
                 "units":            "m",
                 "default":          0,
-                "decimalPlaces":    2
+                "decimalPlaces":    2,
+                "advanced":        true
             },
             "param4": {
                 "label":            "Yaw",
@@ -61,7 +66,8 @@
                 "default":          null,
                 "decimalPlaces":    1,
                 "userMin":          -180,
-                "userMax":          180
+                "userMax":          180,
+                "advanced":        true
             }
         },
         {
@@ -79,7 +85,8 @@
                 "default":          50.0,
                 "decimalPlaces":    2,
                 "userMin":          -100,
-                "userMax":          100
+                "userMax":          100,
+                "advanced":        false
             },
             "param4": {
                 "label":            "Yaw",
@@ -88,7 +95,8 @@
                 "default":          null,
                 "decimalPlaces":    2,
                 "userMin":          -180,
-                "userMax":          180
+                "userMax":          180,
+                "advanced":        true
             }
         },
         {
@@ -106,14 +114,16 @@
                 "decimalPlaces":    0,
                 "min":              0,
                 "userMin":          0,
-                "userMax":          100
+                "userMax":          100,
+                "advanced":        false
             },
             "param2": {
                 "label":            "Leave Loiter",
                 "enumStrings":      "Direction of next waypoint,Any direction",
                 "enumValues":       "1,0",
                 "default":          1,
-                "decimalPlaces":    0
+                "decimalPlaces":    0,
+                "advanced":        false
             },
             "param3": {
                 "label":            "Radius",
@@ -121,14 +131,16 @@
                 "default":          50.0,
                 "decimalPlaces":    2,
                 "userMin":          -100,
-                "userMax":          100
+                "userMax":          100,
+                "advanced":        false
             },
             "param4": {
                 "label":            "Exit loiter from",
                 "enumStrings":      "Center,Tangent",
                 "enumValues":       "0,1",
                 "default":          1,
-                "decimalPlaces":    0
+                "decimalPlaces":    0,
+                "advanced":        false
             }
         },
         {
@@ -147,14 +159,16 @@
                 "decimalPlaces":    0,
                 "min":              0,
                 "userMin":          0,
-                "userMax":          600
+                "userMax":          600,
+                "advanced":        false
             },
             "param2": {
                 "label":            "Leave Loiter",
                 "enumStrings":      "Direction of next waypoint,Current direction",
                 "enumValues":       "1,0",
                 "default":          1,
-                "decimalPlaces":    0
+                "decimalPlaces":    0,
+                "advanced":        false
             },
             "param3": {
                 "label":            "Radius",
@@ -162,14 +176,16 @@
                 "default":          50.0,
                 "decimalPlaces":    2,
                 "userMin":          -100,
-                "userMax":          100
+                "userMax":          100,
+                "advanced":        false
             },
             "param4": {
                 "label":            "Exit loiter from",
                 "enumStrings":      "Center,Tangent",
                 "enumValues":       "0,1",
                 "default":          1,
-                "decimalPlaces":    0
+                "decimalPlaces":    0,
+                "advanced":        false
             }
         },
         {
@@ -193,7 +209,8 @@
                 "label":            "Abort Alt",
                 "units":            "m",
                 "default":          0,
-                "decimalPlaces":    2
+                "decimalPlaces":    2,
+                "advanced":        false
             },
             "param2": {
                 "label":            "Precision Land",
@@ -201,7 +218,8 @@
                 "enumStrings":      "Disabled,Opportunistic,Required",
                 "enumValues":       "0,1,2",
                 "default":          0,
-                "decimalPlaces":    2
+                "decimalPlaces":    2,
+                "advanced":        false
             },
             "param4": {
                 "label":            "Yaw",
@@ -210,7 +228,8 @@
                 "default":          null,
                 "decimalPlaces":    1,
                 "userMin":          -180,
-                "userMax":          180
+                "userMax":          180,
+                "advanced":        true
             }
         },
         {
@@ -240,7 +259,8 @@
                 "enumStrings":      "Climb,Neutral,Descend",
                 "enumValues":       "1,0,2",
                 "default":          1,
-                "decimalPlaces":    0
+                "decimalPlaces":    0,
+                "advanced":        false
             }
         },
         {
@@ -257,7 +277,8 @@
                 "enumStrings":      "Direction of next waypoint,Any direction",
                 "enumValues":       "1,0",
                 "default":          1,
-                "decimalPlaces":    0
+                "decimalPlaces":    0,
+                "advanced":        false
             },
             "param2": {
                 "label":            "Radius",
@@ -265,14 +286,16 @@
                 "default":          50.0,
                 "decimalPlaces":    2,
                 "userMin":          -100,
-                "userMax":          100
+                "userMax":          100,
+                "advanced":        false
             },
             "param4": {
                 "label":            "Exit loiter from",
                 "enumStrings":      "Center,Tangent",
                 "enumValues":       "0,1",
                 "default":          1,
-                "decimalPlaces":    0
+                "decimalPlaces":    0,
+                "advanced":        false
             }
         },
         { "id": 32, "rawName": "MAV_CMD_DO_FOLLOW", "friendlyName": "Follow Me" },
@@ -290,14 +313,16 @@
                 "enumStrings":      "Disable,Enable,Enable+reset",
                 "enumValues":       "0,1,2",
                 "default":          1,
-                "decimalPlaces":    0
+                "decimalPlaces":    0,
+                "advanced":        false
             },
             "param2": {
                 "label":            "Full planning",
                 "enumStrings":      "Disable,Enable,Enable+reset,Enable+reset route only",
                 "enumValues":       "0,1,2,3",
                 "default":          1,
-                "decimalPlaces":    0
+                "decimalPlaces":    0,
+                "advanced":        false
             },
             "param4": {
                 "label":            "Heading goal",
@@ -305,7 +330,8 @@
                 "units":            "deg",
                 "decimalPlaces":    2,
                 "userMin":          -180,
-                "userMax":          180
+                "userMax":          180,
+                "advanced":        false
             }
         },
         {
@@ -323,7 +349,8 @@
                 "decimalPlaces":    0,
                 "min":              0,
                 "userMin":          0,
-                "userMax":          600
+                "userMax":          600,
+                "advanced":        true
             }
         },
         { "id": 83, "rawName": "MAV_CMD_NAV_ALTITUDE_WAIT", "friendlyName": "Altitude wait" },
@@ -342,7 +369,8 @@
                 "enumStrings":      "Default,Next waypoint,Takeoff,Specified,Any",
                 "enumValues":       "0,1,2,3,4",
                 "default":          0,
-                "decimalPlaces":    0
+                "decimalPlaces":    0,
+                "advanced":        false
             },
             "param4": {
                 "label":            "Yaw",
@@ -351,7 +379,8 @@
                 "default":          null,
                 "decimalPlaces":    2,
                 "userMin":          -180,
-                "userMax":          180
+                "userMax":          180,
+                "advanced":        true
             }
         },
         {
@@ -368,7 +397,8 @@
                 "units":            "m",
                 "nanUnchanged":     true,
                 "default":          null,
-                "decimalPlaces":    2
+                "decimalPlaces":    2,
+                "advanced":        true
             },
             "param4": {
                 "label":            "Yaw",
@@ -377,7 +407,8 @@
                 "default":          null,
                 "decimalPlaces":    2,
                 "userMin":          -180,
-                "userMax":          180
+                "userMax":          180,
+                "advanced":        false
             }
         },
         {
@@ -390,7 +421,8 @@
                 "enumStrings":      "On,Off",
                 "enumValues":       "1,0",
                 "default":          1,
-                "decimalPlaces":    0
+                "decimalPlaces":    0,
+                "advanced":        false
             }
         },
         {
@@ -405,7 +437,8 @@
                 "decimalPlaces":    0,
                 "min":              -1,
                 "userMin":          -1,
-                "userMax":          600
+                "userMax":          600,
+                "advanced":        false
             },
             "param2": {
                 "label":            "Hour (utc)",
@@ -414,7 +447,8 @@
                 "min":              -1,
                 "max":              23,
                 "userMin":          -1,
-                "userMax":          23
+                "userMax":          23,
+                "advanced":        false
             },
             "param3": {
                 "label":            "Min (utc)",
@@ -423,7 +457,8 @@
                 "min":              -1,
                 "max":              59,
                 "userMin":          -1,
-                "userMax":          59
+                "userMax":          59,
+                "advanced":        false
             },
             "param4": {
                 "label":            "Sec (utc)",
@@ -432,7 +467,8 @@
                 "min":              -1,
                 "max":              59,
                 "userMin":          -1,
-                "userMax":          59
+                "userMax":          59,
+                "advanced":        false
             }
         },
         {
@@ -449,7 +485,8 @@
                 "decimalPlaces":    0,
                 "min":              0,
                 "userMin":          0,
-                "userMax":          600
+                "userMax":          600,
+                "advanced":        false
             }
         },
         {
@@ -464,7 +501,8 @@
                 "label":            "Rate",
                 "units":            "m/s",
                 "default":          5,
-                "decimalPlaces":    2
+                "decimalPlaces":    2,
+                "advanced":        false
             },
             "param7": {
                 "label":            "Target",
@@ -472,7 +510,8 @@
                 "default":          100,
                 "decimalPlaces":    2,
                 "userMin":          0,
-                "userMax":          121.92
+                "userMax":          121.92,
+                "advanced":        false
             }
         },
         {
@@ -488,7 +527,8 @@
                 "decimalPlaces":    2,
                 "min":              0,
                 "userMin":          0,
-                "userMax":          100
+                "userMax":          100,
+                "advanced":        false
             }
         },
         {
@@ -503,7 +543,8 @@
                 "default":          0,
                 "decimalPlaces":    1,
                 "userMin":          -180,
-                "userMax":          180
+                "userMax":          180,
+                "advanced":        false
             },
             "param2": {
                 "label":            "Rate",
@@ -511,19 +552,22 @@
                 "default":          5,
                 "decimalPlaces":    1,
                 "userMin":          1,
-                "userMax":          360
+                "userMax":          360,
+                "advanced":        false
             },
             "param3": {
                 "label":            "Direction",
                 "enumStrings":      "Clockwise,Shortest,Counter-Clockwise",
                 "enumValues":       "1,0,-1",
-                "default":          0
+                "default":          0,
+                "advanced":        false
             },
             "param4": {
                 "label":            "Offset",
                 "enumStrings":      "Relative,Absolute",
                 "enumValues":       "1,0",
-                "default":          0
+                "default":          0,
+                "advanced":        false
             }
         },
         { "id": 176, "rawName": "MAV_CMD_DO_SET_MODE", "friendlyName": "Set mode" },
@@ -536,17 +580,20 @@
             "param1": {
                 "label":            "Mode",
                 "default":          0,
-                "decimalPlaces":    0
+                "decimalPlaces":    0,
+                "advanced":        false
             },
             "param2": {
                 "label":            "Custom Mode",
                 "default":          0,
-                "decimalPlaces":    0
+                "decimalPlaces":    0,
+                "advanced":        false
             },
             "param3": {
                 "label":            "Sub Mode",
                 "default":          0,
-                "decimalPlaces":    0
+                "decimalPlaces":    0,
+                "advanced":        false
             }
         },
         {
@@ -560,13 +607,15 @@
                 "label":            "Item #",
                 "default":          1,
                 "decimalPlaces":    0,
-                "min":              0
+                "min":              0,
+                "advanced":        false
             },
             "param2": {
                 "label":            "Repeat",
                 "default":          10,
                 "decimalPlaces":    0,
-                "min":              0
+                "min":              0,
+                "advanced":        false
             }
         },
         {
@@ -579,25 +628,29 @@
                 "label":            "Type",
                 "enumStrings":      "Airspeed,Ground Speed,Ascend Speed,Descend Speed",
                 "enumValues":       "0,1,2,3",
-                "default":          0
+                "default":          0,
+                "advanced":        false
             },
             "param2": {
                 "label":            "Speed",
                 "units":            "m/s",
                 "default":          0,
-                "min":              -2
+                "min":              -2,
+                "advanced":        false
             },
             "param3": {
                 "label":            "Throttle",
                 "units":            "%",
                 "default":          0,
-                "min":              -2
+                "min":              -2,
+                "advanced":        false
             },
             "param4": {
                 "label":            "Offset",
                 "enumStrings":      "Relative,Absolute",
                 "enumValues":       "1,0",
-                "default":          0
+                "default":          0,
+                "advanced":        false
             }
         },
         {
@@ -613,7 +666,8 @@
                 "label":            "Mode",
                 "enumStrings":      "Vehicle position,Specified position",
                 "enumValues":       "1,0",
-                "default":          0
+                "default":          0,
+                "advanced":        false
             }
         },
         { "id": 180, "rawName": "MAV_CMD_DO_SET_PARAMETER", "friendlyName": "Set Parameter" },
@@ -626,11 +680,13 @@
                 "label":            "Relay #",
                 "default":          0,
                 "decimalPlaces":    0,
-                "min":              0
+                "min":              0,
+                "advanced":        false
             },
             "param2": {
                 "label":            "Value",
-                "default":          0
+                "default":          0,
+                "advanced":        false
             }
         },
         {
@@ -642,21 +698,24 @@
                 "label":            "Relay #",
                 "default":          0,
                 "decimalPlaces":    0,
-                "min":              0
+                "min":              0,
+                "advanced":        false
             },
             "param2": {
                 "label":            "Cycles",
                 "default":          1,
                 "units":            "count",
                 "decimalPlaces":    0,
-                "min":              1
+                "min":              1,
+                "advanced":        false
             },
             "param3": {
                 "label":            "Time",
                 "default":          10,
                 "units":            "secs",
                 "decimalPlaces":    0,
-                "min":              0
+                "min":              0,
+                "advanced":        false
             }
         },
         {
@@ -669,13 +728,15 @@
                 "label":            "Servo",
                 "default":          1,
                 "decimalPlaces":    0,
-                "min":              0
+                "min":              0,
+                "advanced":        false
             },
             "param2": {
                 "label":            "PWM",
                 "default":          1500,
                 "decimalPlaces":    0,
-                "min":              0
+                "min":              0,
+                "advanced":        false
             }
         },
         {
@@ -687,27 +748,31 @@
                 "label":            "Servo",
                 "default":          1,
                 "decimalPlaces":    0,
-                "min":              0
+                "min":              0,
+                "advanced":        false
             },
             "param2": {
                 "label":            "PWM",
                 "default":          1000,
                 "decimalPlaces":    0,
-                "min":              0
+                "min":              0,
+                "advanced":        false
             },
             "param3": {
                 "label":            "Cycles",
                 "default":          1,
                 "units":            "count",
                 "decimalPlaces":    0,
-                "min":              1
+                "min":              1,
+                "advanced":        false
             },
             "param4": {
                 "label":            "Time",
                 "default":          10,
                 "units":            "secs",
                 "decimalPlaces":    0,
-                "min":              0
+                "min":              0,
+                "advanced":        false
             }
         },
         {
@@ -720,25 +785,29 @@
                 "label":            "Actuator 1",
                 "default":          null,
                 "nanUnchanged":     true,
-                "decimalPlaces":    2
+                "decimalPlaces":    2,
+                "advanced":        false
             },
             "param2": {
                 "label":            "Actuator 2",
                 "default":          null,
                 "nanUnchanged":     true,
-                "decimalPlaces":    2
+                "decimalPlaces":    2,
+                "advanced":        false
             },
             "param3": {
                 "label":            "Actuator 3",
                 "default":          null,
                 "nanUnchanged":     true,
-                "decimalPlaces":    2
+                "decimalPlaces":    2,
+                "advanced":        false
             },
             "param4": {
                 "label":            "Actuator 4",
                 "default":          null,
                 "nanUnchanged":     true,
-                "decimalPlaces":    2
+                "decimalPlaces":    2,
+                "advanced":        false
             }
         },
         { "id": 185, "rawName": "MAV_CMD_DO_FLIGHTTERMINATION", "friendlyName": "Flight termination" },
@@ -767,7 +836,8 @@
                 "label":            "Direction",
                 "enumStrings":      "Forward,Reverse",
                 "enumValues":       "0,1",
-                "default":          0
+                "default":          0,
+                "advanced":        false
             }
         },
         {
@@ -793,19 +863,22 @@
                 "label":            "Pitch offset",
                 "default":          0,
                 "units":            "deg",
-                "decimalPlaces":    0
+                "decimalPlaces":    0,
+                "advanced":        true
             },
             "param6": {
                 "label":            "Roll offset",
                 "default":          0,
                 "units":            "deg",
-                "decimalPlaces":    0
+                "decimalPlaces":    0,
+                "advanced":        true
             },
             "param7": {
                 "label":            "Yaw offset",
                 "default":          0,
                 "units":            "deg",
-                "decimalPlaces":    0
+                "decimalPlaces":    0,
+                "advanced":        true
             }
         },
         {
@@ -832,19 +905,22 @@
                 "enumStrings":      "None,Next waypoint,Mission item,Location,ROI item",
                 "enumValues":       "0,1,2,3,4",
                 "default":          3,
-                "decimalPlaces":    0
+                "decimalPlaces":    0,
+                "advanced":        false
             },
             "param2": {
                 "label":            "Mission Index",
                 "default":          0,
                 "decimalPlaces":    0,
-                "min":              0
+                "min":              0,
+                "advanced":        false
             },
             "param3": {
                 "label":            "ROI Index",
                 "default":          0,
                 "decimalPlaces":    0,
-                "min":              0
+                "min":              0,
+                "advanced":        false
             }
         },
         {
@@ -856,39 +932,46 @@
             "param1": {
                 "label":            "Mode",
                 "default":          0,
-                "decimalPlaces":    0
+                "decimalPlaces":    0,
+                "advanced":        false
             },
             "param2": {
                 "label":            "Shutter spd",
                 "default":          60,
                 "units":            "1/secs",
-                "decimalPlaces":    0
+                "decimalPlaces":    0,
+                "advanced":        false
             },
             "param3": {
                 "label":            "Aperture",
                 "default":          4,
                 "units":            "F stop",
-                "decimalPlaces":    1
+                "decimalPlaces":    1,
+                "advanced":        false
             },
             "param4": {
                 "label":            "ISO",
                 "default":          200,
-                "decimalPlaces":    0
+                "decimalPlaces":    0,
+                "advanced":        false
             },
             "param5": {
                 "label":            "Exposure",
                 "default":          0,
-                "decimalPlaces":    0
+                "decimalPlaces":    0,
+                "advanced":        false
             },
             "param6": {
                 "label":            "Command",
                 "default":          0,
-                "decimalPlaces":    0
+                "decimalPlaces":    0,
+                "advanced":        false
             },
             "param7": {
                 "label":            "Cut off",
                 "default":          0,
-                "decimalPlaces":    2
+                "decimalPlaces":    2,
+                "advanced":        false
             }
         },
         {
@@ -900,32 +983,38 @@
             "param1": {
                 "label":            "Session",
                 "default":          0,
-                "decimalPlaces":    0
+                "decimalPlaces":    0,
+                "advanced":        false
             },
             "param2": {
                 "label":            "Zoom",
                 "default":          0,
-                "decimalPlaces":    3
+                "decimalPlaces":    3,
+                "advanced":        false
             },
             "param3": {
                 "label":            "Step",
                 "default":          0,
-                "decimalPlaces":    3
+                "decimalPlaces":    3,
+                "advanced":        false
             },
             "param4": {
                 "label":            "Focus lock",
                 "default":          0,
-                "decimalPlaces":    0
+                "decimalPlaces":    0,
+                "advanced":        false
             },
             "param5": {
                 "label":            "Command",
                 "default":          0,
-                "decimalPlaces":    0
+                "decimalPlaces":    0,
+                "advanced":        false
             },
             "param6": {
                 "label":            "Id",
                 "default":          0,
-                "decimalPlaces":    0
+                "decimalPlaces":    0,
+                "advanced":        false
             }
         },
         {
@@ -939,28 +1028,32 @@
                 "default":          0,
                 "decimalPlaces":    0,
                 "enumStrings":      "Retract,Neutral,Mavlink Targeting,RC Targeting,GPS Point",
-                "enumValues":       "0,1,2,3,4"
+                "enumValues":       "0,1,2,3,4",
+                "advanced":        false
             },
             "param2": {
                 "label":            "Stabilize Roll",
                 "default":          0,
                 "decimalPlaces":    0,
                 "enumStrings":      "No,Yes",
-                "enumValues":       "0,1"
+                "enumValues":       "0,1",
+                "advanced":        false
             },
             "param3": {
                 "label":            "Stabilize Pitch",
                 "default":          0,
                 "decimalPlaces":    0,
                 "enumStrings":      "No,Yes",
-                "enumValues":       "0,1"
+                "enumValues":       "0,1",
+                "advanced":        false
             },
             "param4": {
                 "label":            "Stabilize Yaw",
                 "default":          0,
                 "decimalPlaces":    0,
                 "enumStrings":      "No,Yes",
-                "enumValues":       "0,1"
+                "enumValues":       "0,1",
+                "advanced":        false
             }
         },
         {
@@ -973,25 +1066,29 @@
                 "label":            "Lat/Pitch",
                 "default":          0,
                 "units":            "deg",
-                "decimalPlaces":    7
+                "decimalPlaces":    7,
+                "advanced":        false
             },
             "param2": {
                 "label":            "Lon/Roll",
                 "default":          0,
                 "units":            "deg",
-                "decimalPlaces":    7
+                "decimalPlaces":    7,
+                "advanced":        false
             },
             "param3": {
                 "label":            "Alt/Yaw",
                 "default":          0,
-                "decimalPlaces":    7
+                "decimalPlaces":    7,
+                "advanced":        false
             },
             "param7": {
                 "label":            "Mode",
                 "default":          0,
                 "decimalPlaces":    0,
                 "enumStrings":      "Retract,Neutral,Mavlink Targeting,RC Targeting,GPS Point",
-                "enumValues":       "0,1,2,3,4"
+                "enumValues":       "0,1,2,3,4",
+                "advanced":        false
             }
         },
         {
@@ -1004,39 +1101,45 @@
                 "label":            "Pitch",
                 "default":          0,
                 "units":            "deg",
-                "decimalPlaces":    2
+                "decimalPlaces":    2,
+                "advanced":        false
             },
             "param2": {
                 "label":            "Yaw",
                 "default":          0,
                 "units":            "deg",
-                "decimalPlaces":    2
+                "decimalPlaces":    2,
+                "advanced":        false
             },
             "param3": {
                 "label":            "Pitch rate",
                 "default":          0,
                 "units":            "deg/s",
-                "decimalPlaces":    2
+                "decimalPlaces":    2,
+                "advanced":        false
             },
             "param4": {
                 "label":            "Yaw rate",
                 "default":          0,
                 "units":            "deg/s",
-                "decimalPlaces":    2
+                "decimalPlaces":    2,
+                "advanced":        false
             },
             "param5": {
                 "label":            "Follow yaw",
                 "default":          0,
                 "decimalPlaces":    0,
                 "enumStrings":      "Follow yaw, Lock yaw",
-                "enumValues":       "0,16"
+                "enumValues":       "0,16",
+                "advanced":        false
             },
             "param7": {
                 "label":            "Gimbal",
                 "default":          0,
                 "decimalPlaces":    0,
                 "enumStrings":      "Primary,first gimbal,second gimbal",
-                "enumValues":       "0,1,2"
+                "enumValues":       "0,1,2",
+                "advanced":        false
             }
         },
         {
@@ -1050,21 +1153,24 @@
                 "default":          25,
                 "units":            "m",
                 "decimalPlaces":    2,
-                "min":              0
+                "min":              0,
+                "advanced":        false
             },
             "param2": {
                 "label":            "Shutter",
                 "default":          0,
                 "units":            "msecs",
                 "decimalPlaces":    0,
-                "min":              -1
+                "min":              -1,
+                "advanced":        false
             },
             "param3": {
                 "label":            "Trigger",
                 "enumStrings":      "No Trigger,Once Immediately",
                 "enumValues":       "0,1",
                 "default":          0,
-                "decimalPlaces":    0
+                "decimalPlaces":    0,
+                "advanced":        false
             }
         },
         {
@@ -1080,7 +1186,8 @@
                 "enumStrings":      "Disable,Disable floor only,Enable",
                 "enumValues":       "0,2,1",
                 "default":          1,
-                "decimalPlaces":    0
+                "decimalPlaces":    0,
+                "advanced":        false
             }
         },
         {
@@ -1096,7 +1203,8 @@
                 "enumStrings":      "Disable,Enable,Release",
                 "enumValues":       "0,1,2",
                 "default":          1,
-                "decimalPlaces":    0
+                "decimalPlaces":    0,
+                "advanced":        false
             }
         },
         { "id": 209, "rawName": "MAV_CMD_DO_MOTOR_TEST", "friendlyName": "Motor test" },
@@ -1112,7 +1220,8 @@
                 "label":            "Inverted",
                 "enumStrings":      "Normal,Inverted",
                 "enumValues":       "0,1",
-                "default":          0
+                "default":          0,
+                "advanced":        false
             }
         },
         {
@@ -1126,13 +1235,15 @@
             "param1": {
                 "label":            "Gripper id",
                 "default":          1,
-                "decimalPlaces":    0
+                "decimalPlaces":    0,
+                "advanced":        false
             },
             "param2": {
                 "label":            "Action",
                 "enumStrings":      "Release,Grab",
                 "enumValues":       "0,1",
-                "default":          0
+                "default":          0,
+                "advanced":        false
             }
         },
         {
@@ -1147,7 +1258,8 @@
                 "label":            "Enable",
                 "enumStrings":      "Enable,Disable",
                 "enumValues":       "1,0",
-                "default":          1
+                "default":          1,
+                "advanced":        false
             }
         },
         { "id": 220, "rawName": "MAV_CMD_DO_MOUNT_CONTROL_QUAT" },
@@ -1162,26 +1274,30 @@
                 "default":          0,
                 "units":            "secs",
                 "decimalPlaces":    0,
-                "min":              0
+                "min":              0,
+                "advanced":        false
             },
             "param2": {
                 "label":            "Min Alt",
                 "default":          25,
                 "units":            "m",
-                "decimalPlaces":    2
+                "decimalPlaces":    2,
+                "advanced":        false
             },
             "param3": {
                 "label":            "Max Alt",
                 "units":            "m",
                 "default":          100,
-                "decimalPlaces":    2
+                "decimalPlaces":    2,
+                "advanced":        false
             },
             "param4": {
                 "label":            "H Limit",
                 "default":          25,
                 "units":            "m",
                 "decimalPlaces":    2,
-                "min":              0
+                "min":              0,
+                "advanced":        false
             }
         },
         { "id": 241, "rawName": "MAV_CMD_PREFLIGHT_CALIBRATION", "friendlyName": "Calibration" },
@@ -1208,7 +1324,8 @@
                 "label":            "Mode",
                 "enumStrings":      "Take photos,Record video,Survey photo mode",
                 "enumValues":       "0,1,2",
-                "default":          0
+                "default":          0,
+                "advanced":        false
             }
         },
         {
@@ -1222,13 +1339,15 @@
                 "default":          0,
                 "units":            "secs",
                 "decimalPlaces":    0,
-                "min":              0
+                "min":              0,
+                "advanced":        false
             },
             "param3": {
                 "label":            "Photo count",
                 "default":          1,
                 "decimalPlaces":    0,
-                "min":              0
+                "min":              0,
+                "advanced":        false
             }
         },
         {
@@ -1251,7 +1370,8 @@
                 "default":          0.2,
                 "units":            "Hz",
                 "decimalPlaces":    2,
-                "min":              0
+                "min":              0,
+                "advanced":        true
             }
         },
         {
@@ -1274,7 +1394,8 @@
                 "label":            "Mode",
                 "default":          3,
                 "enumStrings":      "Multi Rotor,Fixed Wing",
-                "enumValues":       "3,4"
+                "enumValues":       "3,4",
+                "advanced":        false
             }
         },
         {
@@ -1290,7 +1411,8 @@
                 "enumStrings":      "False,True",
                 "enumValues":       "0,1",
                 "default":          1,
-                "decimalPlaces":    0
+                "decimalPlaces":    0,
+                "advanced":        false
             }
         },
         { "id": 30001, "rawName": "MAV_CMD_PAYLOAD_PREPARE_DEPLOY", "friendlyName": "Payload prepare deploy" },

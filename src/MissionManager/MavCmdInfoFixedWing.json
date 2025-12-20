@@ -26,7 +26,8 @@
                 "label":            "Pitch",
                 "units":            "deg",
                 "default":          15,
-                "decimalPlaces":    2
+                "decimalPlaces":    2,
+                "advanced":        false
             }
         }
     ]

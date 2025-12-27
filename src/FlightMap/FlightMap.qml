@@ -102,7 +102,7 @@ Map {
             antialiasing: true
             fillMode: Image.PreserveAspectFit
 
-            property real baseSize: ScreenTools.defaultFontPixelHeight / 4
+            property real baseSize: ScreenTools.defaultFontPixelHeight / 8
             property real referenceZoom: 15
 
             // SCALE WITH ZOOM

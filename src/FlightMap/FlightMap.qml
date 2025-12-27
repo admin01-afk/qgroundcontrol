@@ -37,6 +37,10 @@ Map {
     property var    _activeVehicle:             QGroundControl.multiVehicleManager.activeVehicle
     property var    _activeVehicleCoordinate:   _activeVehicle ? _activeVehicle.coordinate : QtPositioning.coordinate()
     property var    _kamikazeLocManager:        QGroundControl.kamikazeLocManager
+    property var    _rightClickCoordinate:      undefined
+
+    property real popupX: 0
+    property real popupY: 0
 
     // KEYBOARD map controls
     focus: true
@@ -106,7 +110,7 @@ Map {
 
         sourceItem: Image {
             id: kamikaze_icon
-            source:  "/res/qr.png" //"/res/zoom-gps.svg"
+            source:  "/res/qr.png"
             mipmap: true
             antialiasing: true
             fillMode: Image.PreserveAspectFit
@@ -259,13 +263,6 @@ Map {
             isPressed = true
             pressAndHold = false
             pressAndHoldTimer.start()
-
-            let coord = _map.toCoordinate(Qt.point(touchPoints[0].x, touchPoints[0].y), false)
-            if (_kamikazeLocManager) {
-                _kamikazeLocManager.setCoordinate(coord)
-            } else {
-                console.warn("kamikazeLocManager not available yet")
-            }
         }
 
         onGestureStarted: (gesture) => {
@@ -313,14 +310,53 @@ Map {
         }
     }
 
+    Item { // no DropPanel on master 🥲
+        id: floatingContext
+        visible: false
+        x: popupX
+        y: popupY
+
+        Rectangle {
+            id: background
+            width: 180
+            color: "#323232"
+            radius: 6
+            border.color: "#505050"
+            border.width: 1
+
+            Column {
+                anchors.fill: parent
+
+                QGCButton {
+                    text: "Set Kamikaze"
+                    width: parent.width
+                    onClicked: {
+                        if (_rightClickCoordinate) {
+                            _kamikazeLocManager.setCoordinate(_rightClickCoordinate)
+                        }
+                        floatingContext.visible = false
+                    }
+                }
+
+                QGCButton {
+                    text: "Cancel"
+                    width: parent.width
+                    onClicked: floatingContext.visible = false
+                }
+            }
+        }
+    }
+
     MouseArea {
         anchors.fill: parent
         acceptedButtons: Qt.RightButton
-        propagateComposedEvents: true
 
-        onPressed: (mouseEvent) => {
-            if (mouseEvent.button === Qt.RightButton) {
-                mapRightClicked(Qt.point(mouseEvent.x, mouseEvent.y))
+        onPressed: mouse => {
+            if (mouse.button === Qt.RightButton) {
+                _rightClickCoordinate = _map.toCoordinate(Qt.point(mouse.x, mouse.y), false)
+                popupX = mouse.x
+                popupY = mouse.y
+                floatingContext.visible = true
             }
         }
     }
@@ -367,32 +403,6 @@ Map {
         id: deviceLocation
         active: true
         preferredPositioningMethods: PositionSource.SatellitePositioningMethods | PositionSource.NonSatellitePositioningMethods
-    }
-
-    QGCButton {
-        id: zoomToDeviceButton
-        icon.source: "qrc:/res/zoom-gps.svg"
-        icon.color: "green"
-        anchors {
-            left: parent.left
-            bottom: parent.bottom
-            leftMargin: ScreenTools.defaultFontPixelWidth * 2
-            bottomMargin: ScreenTools.defaultFontPixelHeight * 2
-        }
-        ToolTip.text: qsTr("Zoom to My GPS Location")
-        visible: true
-
-        onClicked: {
-            if (deviceLocation.position.coordinate.isValid) {
-                _map.center = deviceLocation.position.coordinate
-                _map.zoomLevel = 18
-            } else {
-                console.warn("Device location not available; using IP fallback")
-                // Example: city-level fallback
-                _map.center = QtPositioning.coordinate(39.815565, 30.531929)
-                _map.zoomLevel = 15
-            }
-        }
     }
 
 } // Map

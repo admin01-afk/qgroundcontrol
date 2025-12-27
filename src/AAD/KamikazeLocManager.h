@@ -12,6 +12,7 @@ public:
     static KamikazeLocManager* instance();
 
     Q_INVOKABLE void setCoordinate(QGeoCoordinate coord);
+    Q_INVOKABLE void clearCoordinate();
 
     QGeoCoordinate coordinate() const { return _coordinate; }
 

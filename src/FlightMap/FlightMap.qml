@@ -339,9 +339,19 @@ Map {
                 }
 
                 QGCButton {
+                    text: "Clear"
+                    width: parent.width
+                    onClicked: {
+                        floatingContext.visible = false
+                        _kamikazeLocManager.clearCoordinate()
+                    }
+                }
+                QGCButton {
                     text: "Cancel"
                     width: parent.width
-                    onClicked: floatingContext.visible = false
+                    onClicked: {
+                        floatingContext.visible = false
+                    }
                 }
             }
         }
@@ -384,7 +394,7 @@ Map {
         }
     }
 
-    // restore Focus FIX: for changing page loses focus, WASD movement not working
+    // restore Focus FIX: for changing page loses focus, WASD movement stop working
     MouseArea {
         anchors.fill: parent
         hoverEnabled: true

@@ -17,4 +17,11 @@ void KamikazeLocManager::setCoordinate(QGeoCoordinate coord) {
         emit coordinateChanged();
         return;
     }
+
+}
+
+void KamikazeLocManager::clearCoordinate()
+{
+    _coordinate = QGeoCoordinate(); // default -> invalid
+    emit coordinateChanged();
 }

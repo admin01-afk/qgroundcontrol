@@ -1,15 +1,24 @@
 #pragma once
 
 #include <QtCore/QObject>
+#include <QtCore/QVariantMap>
+#include <QtCore/QJsonObject>
+#include <QtCore/QJsonArray>
 #include <QGeoCoordinate>
 
+class QNetworkAccessManager;
+class QNetworkReply;
+class QNetworkRequest;
+
 class ServerManager : public QObject
-{Q_OBJECT
+{
+    Q_OBJECT
 
 public:
-    //explicit ServerManager(QObject* parent = nullptr);
-    //Q_DISABLE_COPY(ServerManager)
     static ServerManager* instance();
+
+    explicit ServerManager(QObject* parent = nullptr);
+    Q_DISABLE_COPY(ServerManager)
 
     // QML / C++ API
     Q_INVOKABLE void setBaseUrl(const QString& url) { _baseUrl = url; }
@@ -19,20 +28,20 @@ public:
     Q_INVOKABLE void getQRCoordinates();
 
 signals:
-    // general
     void errorOccurred(const QString& error);
+
     // login
     void loginSucceeded(int teamNumber);
     void loginFailed(const QString& reason);
+
     // qr coords
     void qrCoordinatesReceived(const QGeoCoordinate& coord);
 
 private:
-    QNetworkAccessManager*     _nam{nullptr};
-    QString                   _baseUrl{"http://127.0.0.1:5000"};
+    QNetworkAccessManager* _nam{nullptr};
+    QString                _baseUrl{"http://127.0.0.1:5000"};
 
+    // helpers used by the implemented functions
     void processReplyJson(QNetworkReply* reply, std::function<void(const QJsonObject&)> onSuccess);
-
-    // helpers
     QJsonObject qvariantmapToJson(const QVariantMap& m) const;
 };

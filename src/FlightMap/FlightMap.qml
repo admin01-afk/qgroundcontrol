@@ -28,6 +28,7 @@ Map {
     property var    _activeVehicle:             QGroundControl.multiVehicleManager.activeVehicle
     property var    _activeVehicleCoordinate:   _activeVehicle ? _activeVehicle.coordinate : QtPositioning.coordinate()
     property var    _kamikazeLocManager:        QGroundControl.kamikazeLocManager
+    property var    _serverManager:        QGroundControl.serverManager
     property var    _rightClickCoordinate:      undefined
 
     property real popupX: 0
@@ -348,6 +349,14 @@ Map {
                     width: parent.width
                     onClicked: {
                         floatingContext.visible = false
+                    }
+                }
+                QGCButton {
+                    text: "Login?"
+                    width: parent.width
+                    onClicked: {
+                        floatingContext.visible = false
+                        _serverManager.login("a","b")
                     }
                 }
             }

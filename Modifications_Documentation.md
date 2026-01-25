@@ -10,7 +10,7 @@
 	add
 	{ _kamikaze               , APMPlaneMode::KAMIKAZE      , true , true }
 ```
-	
+
 ## src/FirmwarePlugin/APM/ArduPlaneFirmwarePlugin.h:
 ```
       under
@@ -141,6 +141,17 @@ ADDED-> KamikazeLocManager*     kamikazeLocManager  ()  { return _kamikazeLocMan
 ADDED-> KamikazeLocManager*     _kamikazeLocManager     = nullptr;
         QGCMapEngineManager*    _mapEngineManager       = nullptr;
         ADSBVehicleManager*     _adsbVehicleManager     = nullptr;
+```
+## src/QmlControls/QGroundControlQmlGlobal.cc:
+```
+ADDED --> #include "KamikazeLocManager.h"
+```
+```
+      QGroundControlQmlGlobal::QGroundControlQmlGlobal(QObject *parent)
+          : QObject(parent)
+          , _mapEngineManager(QGCMapEngineManager::instance())
+          ...
+ADDED --> , _kamikazeLocManager(KamikazeLocManager::instance())
 ```
 
 # Using class in FlightMap.qml

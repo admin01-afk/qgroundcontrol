@@ -23,14 +23,4 @@ fi
 ninja -C "$BUILD" -j${JOBS} QGroundControl
 
 # Run the binary (try the usual locations)
-if [ -x "$BUILD/QGroundControl" ]; then
-  "$BUILD/QGroundControl"
-elif [ -x "$BUILD/RelWithDebInfo/QGroundControl" ]; then
-  "$BUILD/RelWithDebInfo/QGroundControl"
-elif [ -x "$BUILD/AppDir/usr/bin/QGroundControl" ]; then
-  "$BUILD/AppDir/usr/bin/QGroundControl"
-else
-  echo "QGroundControl binary not found; listing $BUILD"
-  ls -la "$BUILD"
-  exit 1
-fi
+"$BUILD/RelWithDebInfo/QGroundControl"

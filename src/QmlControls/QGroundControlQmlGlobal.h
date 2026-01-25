@@ -25,7 +25,9 @@ class SettingsManager;
 class VideoManager;
 class QmlObjectListModel;
 class KamikazeLocManager;
+class ServerManager;
 
+Q_MOC_INCLUDE("ServerManager.h")
 Q_MOC_INCLUDE("KamikazeLocManager.h")
 Q_MOC_INCLUDE("ADSBVehicleManager.h")
 Q_MOC_INCLUDE("FactGroup.h")
@@ -61,6 +63,7 @@ public:
     };
     Q_ENUM(AltMode)
 
+    Q_PROPERTY(ServerManager*       serverManager           READ    serverManager           CONSTANT)
     Q_PROPERTY(KamikazeLocManager*  kamikazeLocManager      READ    kamikazeLocManager      CONSTANT)
     Q_PROPERTY(QString              appName                 READ    appName                 CONSTANT)
     Q_PROPERTY(LinkManager*         linkManager             READ    linkManager             CONSTANT)
@@ -178,6 +181,7 @@ public:
     ADSBVehicleManager*     adsbVehicleManager  ()  { return _adsbVehicleManager; }
     QmlUnitsConversion*     unitsConversion     ()  { return &_unitsConversion; }
     KamikazeLocManager*     kamikazeLocManager  ()  { return _kamikazeLocManager; }
+    ServerManager*          serverManager       ()  { return _serverManager; }
     static QGeoCoordinate   flightMapPosition   ()  { return _coord; }
     static double           flightMapZoom       ()  { return _zoom; }
 
@@ -231,6 +235,7 @@ signals:
     void showMessageDialogRequested     (QObject* owner, QString title, QString text, int buttons, QJSValue acceptFunction, QJSValue closeFunction);
 
 private:
+    ServerManager*          _serverManager          = nullptr;
     KamikazeLocManager*     _kamikazeLocManager     = nullptr;
     QGCMapEngineManager*    _mapEngineManager       = nullptr;
     ADSBVehicleManager*     _adsbVehicleManager     = nullptr;

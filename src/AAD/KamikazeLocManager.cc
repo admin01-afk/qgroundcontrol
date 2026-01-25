@@ -34,9 +34,6 @@ void KamikazeLocManager::setCoordinate(QGeoCoordinate coord)
     Fact* lonFact = vehicle->parameterManager()->getParameter(
     vehicle->defaultComponentId(), "KAMIKAZE_LON");
 
-    // int32_t lat = static_cast<int32_t>(coord.latitude());
-    // int32_t lon = static_cast<int32_t>(coord.longitude());
-
     latFact->setRawValue(coord.latitude());
     lonFact->setRawValue(coord.longitude());
 

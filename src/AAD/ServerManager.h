@@ -5,6 +5,7 @@
 #include <QtCore/QJsonObject>
 #include <QtCore/QJsonArray>
 #include <QGeoCoordinate>
+#include <QProcess>
 
 class QNetworkAccessManager;
 class QNetworkReply;
@@ -13,12 +14,14 @@ class QNetworkRequest;
 class ServerManager : public QObject
 {
     Q_OBJECT
+    Q_PROPERTY(bool serversimRunning READ serversimRunning NOTIFY serversimRunningChanged)
 
 public:
     static ServerManager* instance();
 
     explicit ServerManager(QObject* parent = nullptr);
     Q_DISABLE_COPY(ServerManager)
+    bool serversimRunning() const;
 
     // QML / C++ API
     Q_INVOKABLE void setBaseUrl(const QString& url) { _baseUrl = url; }
@@ -28,8 +31,11 @@ public:
     Q_INVOKABLE void getQRCoordinates();
 
     Q_INVOKABLE void checkConnection();
+    Q_INVOKABLE void startServerSim();
+    Q_INVOKABLE void stopServerSim();
 
 signals:
+    void serversimRunningChanged();
     void connectionResult(bool reachable);
     void errorOccurred(const QString& error);
 
@@ -40,6 +46,10 @@ signals:
     // qr coords
     void qrCoordinatesReceived(const QGeoCoordinate& coord);
 
+    // server sim
+    void serverLog(const QString& line);
+    void serverError(const QString& line);
+
 private:
     QNetworkAccessManager* _nam{nullptr};
     QString                _baseUrl{"http://127.0.0.1:5000"};
@@ -47,4 +57,5 @@ private:
     // helpers used by the implemented functions
     void processReplyJson(QNetworkReply* reply, std::function<void(const QJsonObject&)> onSuccess);
     QJsonObject qvariantmapToJson(const QVariantMap& m) const;
+    QProcess* _serversimProcess = nullptr;
 };

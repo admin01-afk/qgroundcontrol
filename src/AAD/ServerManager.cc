@@ -10,6 +10,7 @@
 #include <QDebug>
 #include <functional>
 #include <QApplicationStatic>
+#include <QDir>
 
 Q_APPLICATION_STATIC(ServerManager, _serverManager)
 
@@ -22,6 +23,7 @@ ServerManager::ServerManager(QObject* parent)
     : QObject(parent)
 {
     _nam = new QNetworkAccessManager(this);
+    connect(qApp, &QCoreApplication::aboutToQuit,this, &ServerManager::stopServerSim); // prevent stray servers sim processes
 }
 
 /* helpers */
@@ -157,4 +159,54 @@ void ServerManager::checkConnection()
 
         reply->deleteLater();
     });
+}
+
+void ServerManager::startServerSim()
+{
+    if (_serversimProcess) {qWarning() << "Server sim already running";return;}
+
+    _serversimProcess = new QProcess(this);
+    _serversimProcess->setProcessChannelMode(QProcess::MergedChannels);
+
+    connect(_serversimProcess, &QProcess::readyReadStandardOutput, this, [this]() {
+        if (!_serversimProcess) return;
+
+        const QByteArray data = _serversimProcess->readAllStandardOutput();
+        const QString text = QString::fromUtf8(data);
+
+        for (const QString& line : text.split('\n', Qt::SkipEmptyParts)) {
+            emit serverLog(line);
+        }
+    });
+
+    connect(_serversimProcess,
+            QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished),
+            this, [this](int code, QProcess::ExitStatus status) {
+                qWarning() << "Server sim exited:" << code << status;
+                emit serverError("Server sim exited:" + code + status);
+                _serversimProcess->deleteLater();
+                _serversimProcess = nullptr;
+                emit serversimRunningChanged();   // ✅ state changed
+            });
+
+    const QString server_sim_script =
+        QDir::homePath() + "/qgroundcontrol/src/AAD/server_sim/server.py";
+    _serversimProcess->start("python3", { server_sim_script });
+
+
+    emit serversimRunningChanged();   // ✅ state changed
+}
+
+void ServerManager::stopServerSim()
+{
+    if (_serversimProcess) {
+        _serversimProcess->terminate();
+    }
+}
+
+
+bool ServerManager::serversimRunning() const
+{
+    return _serversimProcess != nullptr &&
+           _serversimProcess->state() != QProcess::NotRunning;
 }

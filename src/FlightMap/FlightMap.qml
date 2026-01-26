@@ -308,26 +308,32 @@ Map {
         }
     }
 
-    Item { // no DropPanel on master 🥲
+    Item {
         id: floatingContext
         visible: false
         x: popupX
         y: popupY
+        z: 9999
 
         Rectangle {
             id: background
-            width: 180
-            color: "#323232"
-            radius: 6
+            width: 190
+            radius: 8
+            color: "#2B2B2B"
             border.color: "#505050"
             border.width: 1
 
             Column {
                 anchors.fill: parent
+                anchors.margins: 6
+                spacing: 4
 
+                /* ---- Buttons ---- */
                 QGCButton {
-                    text: "Set Kamikaze"
+                    text: qsTr("Set Kamikaze")
                     width: parent.width
+                    primary: true
+
                     onClicked: {
                         if (_rightClickCoordinate) {
                             _kamikazeLocManager.setCoordinate(_rightClickCoordinate)
@@ -337,31 +343,28 @@ Map {
                 }
 
                 QGCButton {
-                    text: "Clear"
+                    text: qsTr("Clear")
                     width: parent.width
+
                     onClicked: {
-                        floatingContext.visible = false
                         _kamikazeLocManager.clearCoordinate()
-                    }
-                }
-                QGCButton {
-                    text: "Cancel"
-                    width: parent.width
-                    onClicked: {
                         floatingContext.visible = false
                     }
                 }
+
+                Rectangle { height: 1; width: parent.width; color: "#404040" }
+
                 QGCButton {
-                    text: "Login?"
+                    text: qsTr("Cancel")
                     width: parent.width
-                    onClicked: {
-                        floatingContext.visible = false
-                        _serverManager.login("estuanatolia","2Eqtm3v3ZJ")
-                    }
+                    flat: true
+
+                    onClicked: floatingContext.visible = false
                 }
             }
         }
     }
+
 
     MouseArea {
         anchors.fill: parent

@@ -126,11 +126,11 @@ Item {
             label.color = ok ? "#00FF00" : "#FF0000"
         }
 
-        function onloginSucceeded(){
+        function onLoginSucceeded(){
             loginBtn.palette.buttonText = "#00FF00"
         }
 
-        function onloginFailed(){
+        function onLoginFailed(){
             loginBtn.palette.buttonText = "#FF0000"
         }
     }

@@ -5,6 +5,19 @@ import QGroundControl.Controls
 
 ListModel {
     ListElement {
+        name: qsTr("Server")
+        url: "qrc:/qml/QGroundControl/AppSettings/Server.qml"
+        iconUrl: "qrc:/res/QGCLogoWhite.svg"
+        pageVisible: function() { return true }
+    }
+    ListElement {
+        name: qsTr("Kamikaze")
+        url: "qrc:/qml/QGroundControl/AppSettings/KamikazeSettings.qml"
+        iconUrl: "qrc:/res/QGCLogoWhite.svg"
+        pageVisible: function() { return true }
+    }
+
+    ListElement {
         name: qsTr("General")
         url: "qrc:/qml/QGroundControl/AppSettings/GeneralSettings.qml"
         iconUrl: "qrc:/res/QGCLogoWhite.svg"

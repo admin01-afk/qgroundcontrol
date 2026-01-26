@@ -356,7 +356,7 @@ Map {
                     width: parent.width
                     onClicked: {
                         floatingContext.visible = false
-                        _serverManager.login("a","b")
+                        _serverManager.login("estuanatolia","2Eqtm3v3ZJ")
                     }
                 }
             }

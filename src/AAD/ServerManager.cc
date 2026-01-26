@@ -85,7 +85,6 @@ void ServerManager::processReplyJson(QNetworkReply* reply, std::function<void(co
 
 void ServerManager::login(const QString& username, const QString& password)
 {
-    qDebug()    << "Hello";
     QUrl url(_baseUrl + "/api/giris");
     QNetworkRequest req(url);
     req.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
@@ -99,6 +98,7 @@ void ServerManager::login(const QString& username, const QString& password)
     QNetworkReply* reply = _nam->post(req, payload);
     connect(reply, &QNetworkReply::finished, this, [this, reply]() {
         if (reply->error() != QNetworkReply::NoError) {
+            qDebug() << "ERROR:" << reply->error();
             emit loginFailed(reply->errorString());
             reply->deleteLater();
             return;
@@ -108,9 +108,11 @@ void ServerManager::login(const QString& username, const QString& password)
             if (obj.contains("takim_numarasi")) {
                 int team = obj.value("takim_numarasi").toInt();
                 emit loginSucceeded(team);
+                qDebug() << "loged in";
             } else {
                 QString err = obj.contains("error") ? obj.value("error").toString() : "Unknown login error";
                 emit loginFailed(err);
+                qDebug() << "ERROR:LOGIN FAILED";
             }
         });
     });
@@ -131,5 +133,28 @@ void ServerManager::getQRCoordinates()
                 emit errorOccurred("Invalid QR coordinate response");
             }
         });
+    });
+}
+
+void ServerManager::checkConnection()
+{
+    QNetworkRequest req{ QUrl(_baseUrl) };
+    req.setAttribute(QNetworkRequest::RedirectionTargetAttribute, true);
+
+    QNetworkReply* reply = _nam->head(req);
+
+    connect(reply, &QNetworkReply::finished, this, [this, reply]() {
+        // Network-level failure ONLY
+        if (reply->error() == QNetworkReply::HostNotFoundError ||
+            reply->error() == QNetworkReply::ConnectionRefusedError ||
+            reply->error() == QNetworkReply::TimeoutError) {
+
+            emit connectionResult(false);
+        } else {
+            // ANY HTTP response (200, 404, 500, etc.)
+            emit connectionResult(true);
+        }
+
+        reply->deleteLater();
     });
 }

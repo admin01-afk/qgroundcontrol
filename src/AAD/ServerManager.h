@@ -27,7 +27,10 @@ public:
     Q_INVOKABLE void login(const QString& username, const QString& password);
     Q_INVOKABLE void getQRCoordinates();
 
+    Q_INVOKABLE void checkConnection();
+
 signals:
+    void connectionResult(bool reachable);
     void errorOccurred(const QString& error);
 
     // login

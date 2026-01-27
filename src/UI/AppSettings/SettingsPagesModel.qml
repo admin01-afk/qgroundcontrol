@@ -14,7 +14,7 @@ ListModel {
         name: qsTr("Kamikaze")
         url: "qrc:/qml/QGroundControl/AppSettings/KamikazeSettings.qml"
         iconUrl: "qrc:/res/QGCLogoWhite.svg"
-        pageVisible: function() { return true }
+        pageVisible: function() { return QGroundControl.settingsManager.appSettings.operationMode === AppSettings.SAVASAN}
     }
 
     ListElement {

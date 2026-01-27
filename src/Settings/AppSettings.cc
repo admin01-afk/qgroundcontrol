@@ -196,6 +196,27 @@ DECLARE_SETTINGSFACT_NO_FUNC(AppSettings, qLocaleLanguage)
     return _qLocaleLanguageFact;
 }
 
+static const char* kOperationModeKey = "OperationMode";
+
+AppSettings::OperationMode AppSettings::operationMode() const
+{
+    QSettings settings;
+    return static_cast<OperationMode>(
+        settings.value(kOperationModeKey, SAVASAN).toInt()
+    );
+}
+
+void AppSettings::setOperationMode(OperationMode mode)
+{
+    if (operationMode() == mode) {
+        return;
+    }
+
+    QSettings settings;
+    settings.setValue(kOperationModeKey, mode);
+    emit operationModeChanged();
+}
+
 void AppSettings::_qLocaleLanguageChanged()
 {
     qgcApp()->setLanguage();

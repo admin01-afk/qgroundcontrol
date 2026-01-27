@@ -11,6 +11,12 @@ class AppSettings : public SettingsGroup
     QML_ELEMENT
     QML_UNCREATABLE("")
 public:
+    enum OperationMode {
+        SAVASAN = 0,
+        IUAV    = 1
+    };
+    Q_ENUM(OperationMode)
+
     AppSettings(QObject* parent = nullptr);
 
     DEFINE_SETTING_NAME_GROUP()
@@ -48,6 +54,7 @@ public:
     DEFINE_SETTINGFACT(disableAllPersistence)
     DEFINE_SETTINGFACT(firstRunPromptIdsShown)
 
+    Q_PROPERTY(OperationMode operationMode READ operationMode WRITE setOperationMode NOTIFY operationModeChanged)
     Q_PROPERTY(QString missionSavePath          READ missionSavePath            NOTIFY savePathsChanged)
     Q_PROPERTY(QString parameterSavePath        READ parameterSavePath          NOTIFY savePathsChanged)
     Q_PROPERTY(QString telemetrySavePath        READ telemetrySavePath          NOTIFY savePathsChanged)
@@ -79,6 +86,9 @@ public:
     QString mavlinkActionsSavePath();
     QString settingsSavePath      ();
 
+    OperationMode operationMode() const;
+    void setOperationMode(OperationMode mode);
+
     // Helper methods for working with firstRunPromptIds QVariant settings string list
     static QList<int> firstRunPromptsIdsVariantToList   (const QVariant& firstRunPromptIds);
     static QVariant   firstRunPromptsIdsListToVariant   (const QList<int>& rgIds);
@@ -108,6 +118,7 @@ public:
 
 signals:
     void savePathsChanged();
+    void operationModeChanged();
 
 private slots:
     void _indoorPaletteChanged();

@@ -14,6 +14,7 @@ Item {
     width:  parent.width
     height: ScreenTools.toolbarHeight
 
+    property var appSettings: QGroundControl.settingsManager.appSettings
     property var    _activeVehicle:     QGroundControl.multiVehicleManager.activeVehicle
     property bool   _communicationLost: _activeVehicle ? _activeVehicle.vehicleLinkManager.communicationLost : false
     property color  _mainStatusBGColor: qgcPal.brandingPurple
@@ -85,6 +86,19 @@ Item {
                         MainStatusIndicator {
                             id:                 mainStatusIndicator
                             Layout.fillHeight:  true
+                        }
+
+                        Button {
+                            text: appSettings.operationMode === AppSettings.SAVASAN
+                                ? "SAVASAN"
+                                : "IUAV"
+
+                            onClicked: {
+                                appSettings.operationMode =
+                                    appSettings.operationMode === AppSettings.SAVASAN
+                                    ? AppSettings.IUAV
+                                    : AppSettings.SAVASAN
+                            }
                         }
                     }
 

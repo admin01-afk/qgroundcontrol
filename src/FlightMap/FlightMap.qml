@@ -28,7 +28,7 @@ Map {
     property var    _activeVehicle:             QGroundControl.multiVehicleManager.activeVehicle
     property var    _activeVehicleCoordinate:   _activeVehicle ? _activeVehicle.coordinate : QtPositioning.coordinate()
     property var    _kamikazeLocManager:        QGroundControl.kamikazeLocManager
-    property var    _serverManager:        QGroundControl.serverManager
+    property var    _serverManager:             QGroundControl.serverManager
     property var    _rightClickCoordinate:      undefined
 
     property real popupX: 0
@@ -107,7 +107,7 @@ Map {
             antialiasing: true
             fillMode: Image.PreserveAspectFit
 
-            property real baseSize: ScreenTools.defaultFontPixelHeight / 8
+            property real baseSize: ScreenTools.defaultFontPixelHeight / 6
             property real referenceZoom: 15
 
             // SCALE WITH ZOOM

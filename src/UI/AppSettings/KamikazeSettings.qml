@@ -100,10 +100,10 @@ Item {
         target: _serverManager
 
         function onQrCoordinatesReceived(coord) {
-            latField.text = coord.latitude.toFixed(7)
-            lonField.text = coord.longitude.toFixed(7)
+            latField.text = coord.latitude
+            lonField.text = coord.longitude
 
-            _kamikazeLocManager.coordinate = coord
+            _kamikazeLocManager.coordinate = coord //TODO? move to ServerManager::getQRCoordinates
 
             console.log("QR coords received:",
                         coord.latitude,

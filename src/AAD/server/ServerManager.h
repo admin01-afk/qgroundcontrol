@@ -6,6 +6,7 @@
 #include <QtCore/QJsonArray>
 #include <QGeoCoordinate>
 #include <QProcess>
+#include <QTimer>
 
 class QNetworkAccessManager;
 class QNetworkReply;
@@ -15,6 +16,7 @@ class ServerManager : public QObject
 {
     Q_OBJECT
     Q_PROPERTY(bool serversimRunning READ serversimRunning NOTIFY serversimRunningChanged)
+    Q_PROPERTY(bool telemRunning READ telemRunning NOTIFY telemRunningChanged)
 
 public:
     static ServerManager* instance();
@@ -22,6 +24,7 @@ public:
     explicit ServerManager(QObject* parent = nullptr);
     Q_DISABLE_COPY(ServerManager)
     bool serversimRunning() const;
+    bool telemRunning() const;
 
     // QML / C++ API
     Q_INVOKABLE void setBaseUrl(const QString& url) { _baseUrl = url; }
@@ -33,6 +36,8 @@ public:
     Q_INVOKABLE void checkConnection();
     Q_INVOKABLE void startServerSim();
     Q_INVOKABLE void stopServerSim();
+
+    Q_INVOKABLE void toggleTelem();
 
 signals:
     void serversimRunningChanged();
@@ -50,6 +55,8 @@ signals:
     void serverLog(const QString& line);
     void serverError(const QString& line);
 
+    void telemRunningChanged();
+
 private:
     QNetworkAccessManager* _nam{nullptr};
     QString                _baseUrl{"http://127.0.0.1:5000"};
@@ -58,4 +65,14 @@ private:
     void processReplyJson(QNetworkReply* reply, std::function<void(const QJsonObject&)> onSuccess);
     QJsonObject qvariantmapToJson(const QVariantMap& m) const;
     QProcess* _serversimProcess = nullptr;
+    void requestJson(
+        QNetworkAccessManager::Operation op,
+        const QString& path,
+        const QJsonObject* body,
+        std::function<void(const QJsonObject&)> onSuccess
+    );
+
+    // telem loop
+    QTimer* _telemTimer{nullptr};
+    void _telemLoop();
 };

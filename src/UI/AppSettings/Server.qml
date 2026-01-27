@@ -8,6 +8,9 @@ import QGroundControl
 Item {
     property var _serverManager: QGroundControl.serverManager
 
+    property int maxLines: 1000
+    property var consoleLines: []
+
     anchors.fill: parent
 
     ScrollView {
@@ -166,10 +169,18 @@ Item {
 
                         Button {
                             text: qsTr("Clear")
-                            onClicked: serverConsole.clear()
+                            onClicked: {serverConsole.clear() ; consoleLines = [] }
                         }
                     }
                 }
+            }
+
+            Button {
+                text: _serverManager.telemRunning
+                    ? qsTr("Stop telem loop")
+                    : qsTr("Start telem loop")
+
+                onClicked: _serverManager.toggleTelem()
             }
         }
     }
@@ -192,13 +203,22 @@ Item {
         }
 
         function onServerLog(line) {
-            serverConsole.append("<font color='#13b51b'>" + line + "</font>")
+            appendConsoleHtml("<font color='#13b51b'>" + line + "</font>")
             serverConsole.cursorPosition = serverConsole.length
         }
 
         function onServerError(line) {
-            serverConsole.append("<font color='#ff5555'>[ERR] " + line + "</font>")
+            appendConsoleHtml("<font color='#ff5555'>[ERR] " + line + "</font>")
             serverConsole.cursorPosition = serverConsole.length
+        }
+
+        function appendConsoleHtml(html) {
+            consoleLines.push(html);
+            if (consoleLines.length > maxLines) {
+                consoleLines.splice(0, consoleLines.length - maxLines);
+            }
+            serverConsole.text = consoleLines.join("<br/>");
+            serverConsole.cursorPosition = serverConsole.length;
         }
     }
 }

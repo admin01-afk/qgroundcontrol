@@ -4,10 +4,15 @@
 
 target_sources(${CMAKE_PROJECT_NAME}
     PRIVATE
-        KamikazeLocManager.cc
-        KamikazeLocManager.h
-        ServerManager.cc
-        ServerManager.h
+        server/ServerManager.cc
+        server/ServerManager.h
+        kamikaze/KamikazeLocManager.cc
+        kamikaze/KamikazeLocManager.h
 )
 
-target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+target_include_directories(${CMAKE_PROJECT_NAME}
+    PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}
+        ${CMAKE_CURRENT_SOURCE_DIR}/server
+        ${CMAKE_CURRENT_SOURCE_DIR}/kamikaze
+)

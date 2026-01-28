@@ -4,13 +4,13 @@ from datetime import datetime
 class Competition():
     def __init__(self):
         self.contestants = []
-  
+
         self.users = {
     "estuanatolia": {"password": "2Eqtm3v3ZJ", "team_number": 31},
     "team1": {"password": "team123", "team_number": 2},
     "1": {"password": "1", "team_number": 3}
 }
-        
+
     def find_contestant(self, id):
         for index, a in enumerate(self.contestants):
             if a.id == id:
@@ -38,8 +38,8 @@ class Competition():
         enemy_planes = [
             {
                 "takim_numarasi": 23,
-                "iha_enlem": 39.820107,
-                "iha_boylam": 30.536585,
+                "iha_enlem": -35.36294906,
+                "iha_boylam": 149.1643906,
                 "iha_irtifa": 90.0,
                 "iha_dikilme": -8.0,
                 "iha_yonelme": 90.0,
@@ -49,8 +49,8 @@ class Competition():
             },
             {
                 "takim_numarasi": 2,
-                "iha_enlem": 39.820907,
-                "iha_boylam": 30.532501,
+                "iha_enlem": -35.362520,
+                "iha_boylam": 149.164950,
                 "iha_irtifa": 95.0,
                 "iha_dikilme": -5.0,
                 "iha_yonelme": 135.0,
@@ -60,8 +60,8 @@ class Competition():
             },
             {
                 "takim_numarasi": 3,
-                "iha_enlem": 39.822148,
-                "iha_boylam": 30.534166,
+                "iha_enlem": -35.363180,
+                "iha_boylam": 149.163880,
                 "iha_irtifa": 110.0,
                 "iha_dikilme": -10.0,
                 "iha_yonelme": 150.0,
@@ -71,8 +71,8 @@ class Competition():
             },
             {
                 "takim_numarasi": 4,
-                "iha_enlem": 39.819989,
-                "iha_boylam": 30.534647,
+                "iha_enlem": -35.363400,
+                "iha_boylam": 149.164420,
                 "iha_irtifa": 90.0,
                 "iha_dikilme": -8.0,
                 "iha_yonelme": 127.0,
@@ -82,8 +82,8 @@ class Competition():
             },
             {
                 "takim_numarasi": 5,
-                "iha_enlem": 39.820315, 
-                "iha_boylam": 30.535707,
+                "iha_enlem": -35.362700,
+                "iha_boylam": 149.163700,
                 "iha_irtifa": 95.0,
                 "iha_dikilme": -5.0,
                 "iha_yonelme": 135.0,
@@ -93,8 +93,8 @@ class Competition():
             },
             {
                 "takim_numarasi": 6,
-                "iha_enlem": 39.820476,
-                "iha_boylam":  30.537278,
+                "iha_enlem": -35.362300,
+                "iha_boylam": 149.164100,
                 "iha_irtifa": 110.0,
                 "iha_dikilme": -10.0,
                 "iha_yonelme": 150.0,

@@ -93,6 +93,27 @@ Map {
         }
     }
 
+    MapItemView {
+        model: QGroundControl.serverManager.telemPlaneDataModel
+
+        delegate: MapQuickItem {
+            anchorPoint.x: dot.width / 2
+            anchorPoint.y: dot.height / 2
+            coordinate: model.coordinate
+
+            sourceItem: Rectangle {
+                id: dot
+                width: ScreenTools.defaultFontPixelHeight / 3
+                height: width
+                radius: width / 2
+                color: "red"
+                border.color: "white"
+                border.width: 1
+            }
+        }
+    }
+
+
     // QR icon at set location
     MapQuickItem {
         anchorPoint.x: kamikaze_icon.width / 2

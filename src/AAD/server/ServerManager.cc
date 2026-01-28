@@ -1,5 +1,8 @@
 #include "ServerManager.h"
 
+/* ============================================================================
+ * Qt / STL Includes
+ * ========================================================================== */
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
 #include <QNetworkRequest>
@@ -8,9 +11,14 @@
 #include <QJsonObject>
 #include <QUrl>
 #include <QDebug>
-#include <functional>
-#include <QApplicationStatic>
 #include <QDir>
+#include <QApplicationStatic>
+
+#include <functional>
+
+/* ============================================================================
+ * Singleton Instance
+ * ========================================================================== */
 
 Q_APPLICATION_STATIC(ServerManager, _serverManager)
 
@@ -19,20 +27,30 @@ ServerManager* ServerManager::instance()
     return _serverManager();
 }
 
+/* ============================================================================
+ * Constructor / Initialization
+ * ========================================================================== */
+
 ServerManager::ServerManager(QObject* parent)
     : QObject(parent)
 {
+    // Network manager
     _nam = new QNetworkAccessManager(this);
 
-    // init telemTimer
+    // Telemetry loop (2 Hz)
     _telemTimer = new QTimer(this);
-    _telemTimer->setInterval(1000); // 1 Hz
-    connect(_telemTimer, &QTimer::timeout,this, &ServerManager::_telemLoop);
+    _telemTimer->setInterval(500);
+    connect(_telemTimer, &QTimer::timeout,
+            this, &ServerManager::_telemLoop);
 
-    connect(qApp, &QCoreApplication::aboutToQuit,this, &ServerManager::stopServerSim); // prevent stray servers sim processes
+    // Prevent stray server processes on app exit
+    connect(qApp, &QCoreApplication::aboutToQuit,
+            this, &ServerManager::stopServerSim);
 }
 
-/* helpers */
+/* ============================================================================
+ * HTTP / JSON Helper Utilities
+ * ========================================================================== */
 
 void ServerManager::requestJson(
     QNetworkAccessManager::Operation op,
@@ -68,7 +86,7 @@ void ServerManager::requestJson(
 
             const QByteArray data = reply->readAll();
 
-            // Network-level errors
+            // Network-level error
             if (reply->error() != QNetworkReply::NoError) {
                 emit errorOccurred(
                     QString("HTTP %1: %2\n%3")
@@ -102,8 +120,10 @@ void ServerManager::requestJson(
 QJsonObject ServerManager::qvariantmapToJson(const QVariantMap& m) const
 {
     QJsonObject obj;
+
     for (auto it = m.constBegin(); it != m.constEnd(); ++it) {
         const QVariant& v = it.value();
+
         switch (v.typeId()) {
         case QMetaType::Bool:
             obj.insert(it.key(), v.toBool());
@@ -116,14 +136,17 @@ QJsonObject ServerManager::qvariantmapToJson(const QVariantMap& m) const
             obj.insert(it.key(), v.toDouble());
             break;
         default:
-            obj.insert(it.key(), QJsonValue(v.toString()));
+            obj.insert(it.key(), v.toString());
             break;
         }
     }
+
     return obj;
 }
 
-/* API methods */
+/* ============================================================================
+ * Public API — Authentication / Queries
+ * ========================================================================== */
 
 void ServerManager::login(const QString& username, const QString& password)
 {
@@ -174,15 +197,15 @@ void ServerManager::checkConnection()
 
     QNetworkReply* reply = _nam->head(req);
 
-    connect(reply, &QNetworkReply::finished, this, [this, reply]() {
-        // Network-level failure ONLY
+    connect(reply, &QNetworkReply::finished,
+            this, [this, reply]() {
+
+        // Only fail on real network errors
         if (reply->error() == QNetworkReply::HostNotFoundError ||
             reply->error() == QNetworkReply::ConnectionRefusedError ||
             reply->error() == QNetworkReply::TimeoutError) {
-
             emit connectionResult(false);
         } else {
-            // ANY HTTP response (200, 404, 500, etc.)
             emit connectionResult(true);
         }
 
@@ -190,63 +213,79 @@ void ServerManager::checkConnection()
     });
 }
 
+/* ============================================================================
+ * Server Simulator Process Management
+ * ========================================================================== */
+
 void ServerManager::startServerSim()
 {
-    if (_serversimProcess) {qWarning() << "Server sim already running";return;}
+    if (_serversimProcess) {
+        qWarning() << "Server sim already running";
+        return;
+    }
 
     _serversimProcess = new QProcess(this);
     _serversimProcess->setProcessChannelMode(QProcess::MergedChannels);
 
-    connect(_serversimProcess, &QProcess::readyReadStandardOutput, this, [this]() {
-        if (!_serversimProcess) return;
+    connect(_serversimProcess,
+            &QProcess::readyReadStandardOutput,
+            this, [this]() {
 
-        const QByteArray data = _serversimProcess->readAllStandardOutput();
-        const QString text = QString::fromUtf8(data);
+        const QString text =
+            QString::fromUtf8(_serversimProcess->readAllStandardOutput());
 
-        for (const QString& line : text.split('\n', Qt::SkipEmptyParts)) {
-            emit serverLog(line);
-        }
+        for (const QString& line : text.split('\n', Qt::SkipEmptyParts))
+            appendLog(line);
     });
 
     connect(_serversimProcess,
             QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished),
             this, [this](int code, QProcess::ExitStatus status) {
-                qWarning() << "Server sim exited:" << code << status;
-                QString msg = QStringLiteral("Server sim exited: %1 (%2)").arg(code).arg(status);
-                emit serverError(msg);
-                _serversimProcess->deleteLater();
-                _serversimProcess = nullptr;
-                emit serversimRunningChanged();   // ✅ state changed
-            });
 
-    const QString server_sim_script =
+        appendLog(
+            QString("Server sim exited: %1 (%2)").arg(code).arg(status)
+        );
+
+        _serversimProcess->deleteLater();
+        _serversimProcess = nullptr;
+        emit serversimRunningChanged();
+    });
+
+    const QString script =
         QDir::homePath() + "/qgroundcontrol/src/AAD/server_sim/server.py";
-    _serversimProcess->start("python3", { server_sim_script });
+
+    _serversimProcess->start("python3", { script });
+
     if (!_serversimProcess->waitForStarted(1500)) {
-        QString err = QString("Failed to start server sim: %1").arg(server_sim_script);
-        emit serverError(err);
+        appendLog(QString("Failed to start server sim: %1").arg(script));
         _serversimProcess->deleteLater();
         _serversimProcess = nullptr;
         emit serversimRunningChanged();
         return;
     }
-    emit serversimRunningChanged();   // ✅ state changed
+
+    emit serversimRunningChanged();
 }
 
 void ServerManager::stopServerSim()
 {
-    if (!_serversimProcess) return;
-    _serversimProcess->terminate();
+    if (_serversimProcess)
+        _serversimProcess->terminate();
 }
 
-bool ServerManager::serversimRunning() const{
-    return _serversimProcess != nullptr &&
+bool ServerManager::serversimRunning() const
+{
+    return _serversimProcess &&
            _serversimProcess->state() != QProcess::NotRunning;
 }
 
+/* ============================================================================
+ * Telemetry Loop
+ * ========================================================================== */
+
 void ServerManager::_telemLoop()
 {
-    qDebug() << "[TELEM] tick";
+    appendLog("[TELEM] tick");
 
     QJsonObject body{
         {"takim_numarasi", 3}
@@ -259,16 +298,19 @@ void ServerManager::_telemLoop()
         &body,
         [this](const QJsonObject& obj)
         {
-            if (!obj.contains("konum_bilgileri") || !obj["konum_bilgileri"].isArray()) {
-                qWarning() << "No konum_bilgileri in response";
-                return;
-            }
+            if (!obj.contains("konum_bilgileri")) {qDebug("no konum_bilgileri in json"); return; }
 
-            QJsonArray arr = obj["konum_bilgileri"].toArray();
-            for (const QJsonValue& v : arr) {
+            for (const auto& v : obj["konum_bilgileri"].toArray()) {
                 QJsonObject o = v.toObject();
-                int id = o["takim_numarasi"].toInt();
-                qDebug() << "takim_numarasi:" << id;
+
+                int teamId = o["takim_numarasi"].toInt();
+                double lat = o["iha_enlem"].toDouble();
+                double lon = o["iha_boylam"].toDouble();
+
+                _telemPlaneDataModel.updateAircraft(
+                    teamId,
+                    QGeoCoordinate(lat, lon)
+                );
             }
         }
     );
@@ -281,6 +323,28 @@ bool ServerManager::telemRunning() const
 
 void ServerManager::toggleTelem()
 {
-    telemRunning() ? _telemTimer->stop() : _telemTimer->start();
+    telemRunning() ? _telemTimer->stop()
+                   : _telemTimer->start();
+
     emit telemRunningChanged();
+}
+
+/* ========================================================================== *
+ * Log Buffer Management (QML-facing)                                         *
+ * ========================================================================== */
+
+void ServerManager::appendLog(const QString& line)
+{
+    _logs.append(line);
+
+    if (_logs.size() > 1000)
+        _logs.removeFirst();
+
+    emit logsChanged();
+}
+
+void ServerManager::clearLogs()
+{
+    _logs.clear();
+    emit logsChanged();
 }

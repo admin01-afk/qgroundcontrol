@@ -6,12 +6,9 @@ import QtPositioning 5.15
 import QGroundControl
 
 Item {
-    property var _serverManager: QGroundControl.serverManager
-
-    property int maxLines: 1000
-    property var consoleLines: []
-
     anchors.fill: parent
+
+    property var _serverManager: QGroundControl.serverManager
 
     ScrollView {
         anchors.fill: parent
@@ -20,7 +17,7 @@ Item {
             width: parent.availableWidth
             spacing: 16
 
-            /* ---- Header ---- */
+            /* ================= Header ================= */
             RowLayout {
                 Layout.fillWidth: true
                 spacing: 12
@@ -43,12 +40,10 @@ Item {
                     onClicked: _serverManager.checkConnection()
                 }
 
-                    /* ---- Base URL editor ---- */
                 TextField {
                     id: baseUrlField
                     Layout.preferredWidth: 260
                     placeholderText: _serverManager.baseUrl()
-                    text: ""
                 }
 
                 Button {
@@ -62,31 +57,30 @@ Item {
                 }
 
                 Button {
-                    text: _serverManager.serversimRunning ? "Stop Server sim" : "Run Server sim"
-                    palette.buttonText: _serverManager.serversimRunning ? "white" : "orange"
+                    text: _serverManager.serversimRunning
+                          ? qsTr("Stop Server sim")
+                          : qsTr("Run Server sim")
+
                     onClicked: {
-                        if (_serverManager.serversimRunning)
-                            _serverManager.stopServerSim()
-                        else
-                            _serverManager.startServerSim()
+                        _serverManager.serversimRunning
+                            ? _serverManager.stopServerSim()
+                            : _serverManager.startServerSim()
                     }
                 }
             }
 
-            /* ---- Login panel ---- */
+            /* ================= Login ================= */
             ColumnLayout {
                 Layout.alignment: Qt.AlignHCenter
                 spacing: 12
 
                 RowLayout {
                     spacing: 12
-
                     Label {
                         text: qsTr("Username")
                         Layout.preferredWidth: 120
                         horizontalAlignment: Text.AlignRight
                     }
-
                     TextField {
                         id: usrnameField
                         Layout.preferredWidth: 220
@@ -95,13 +89,11 @@ Item {
 
                 RowLayout {
                     spacing: 12
-
                     Label {
                         text: qsTr("Password")
                         Layout.preferredWidth: 120
                         horizontalAlignment: Text.AlignRight
                     }
-
                     TextField {
                         id: passwrdField
                         Layout.preferredWidth: 220
@@ -109,29 +101,23 @@ Item {
                     }
                 }
 
-                RowLayout {
-                    Layout.alignment: Qt.AlignHCenter
-
-                    Button { id: loginBtn
-                        text: qsTr("Login")
-                        Layout.preferredWidth: 120
-                        onClicked: {
-                            console.log("send:",
-                                        usrnameField.text,
-                                        passwrdField.text)
-                            _serverManager.login(
-                                usrnameField.text,
-                                passwrdField.text
-                            )
-                        }
+                Button {
+                    id: loginBtn
+                    text: qsTr("Login")
+                    Layout.preferredWidth: 120
+                    onClicked: {
+                        _serverManager.login(
+                            usrnameField.text,
+                            passwrdField.text
+                        )
                     }
                 }
             }
 
-            /* ---- Server sim console ---- */
+            /* ================= Server Console ================= */
             Rectangle {
                 Layout.fillWidth: true
-                Layout.preferredHeight: 220
+                Layout.preferredHeight: 260
                 radius: 6
                 color: "#1e1e1e"
                 border.color: "#404040"
@@ -151,74 +137,63 @@ Item {
                         Layout.fillHeight: true
                         clip: true
 
-                        TextArea {
-                            id: serverConsole
-                            readOnly: true
-                            wrapMode: Text.WrapAnywhere
-                            font.family: "monospace"
-                            font.pixelSize: 12
-                            color: "#dddddd"
-                            background: null
-                            selectByMouse: true
-                            textFormat: Text.RichText
+                        ListView {
+                            id: logView
+                            model: _serverManager.logs
+                            spacing: 2
+                            clip: true
+
+                            delegate: Text {
+                                text: modelData
+                                color: "#dddddd"
+                                font.family: "monospace"
+                                font.pixelSize: 12
+                                wrapMode: Text.WrapAnywhere
+                            }
+
+                            onCountChanged: positionViewAtEnd()
                         }
                     }
 
                     RowLayout {
                         Layout.alignment: Qt.AlignRight
-
                         Button {
                             text: qsTr("Clear")
-                            onClicked: {serverConsole.clear() ; consoleLines = [] }
+                            onClicked: _serverManager.clearLogs()
                         }
                     }
                 }
             }
 
+            /* ================= Telemetry ================= */
             Button {
                 text: _serverManager.telemRunning
-                    ? qsTr("Stop telem loop")
-                    : qsTr("Start telem loop")
+                      ? qsTr("Stop telem loop")
+                      : qsTr("Start telem loop")
 
                 onClicked: _serverManager.toggleTelem()
             }
         }
     }
 
-    /* ---- Server status ---- */
+    /* ================= Status Signals ================= */
     Connections {
         target: _serverManager
 
         function onConnectionResult(ok) {
-            console.log("Server reachable:", ok)
             label.color = ok ? "#00FF00" : "#FF0000"
         }
 
-        function onLoginSucceeded(){
+        function onLoginSucceeded() {
             loginBtn.palette.buttonText = "#00FF00"
         }
 
-        function onLoginFailed(){
+        function onLoginFailed() {
             loginBtn.palette.buttonText = "#FF0000"
         }
+    }
 
-        function onServerLog(line) {
-            appendConsoleHtml("<font color='#13b51b'>" + line + "</font>")
-            serverConsole.cursorPosition = serverConsole.length
-        }
-
-        function onServerError(line) {
-            appendConsoleHtml("<font color='#ff5555'>[ERR] " + line + "</font>")
-            serverConsole.cursorPosition = serverConsole.length
-        }
-
-        function appendConsoleHtml(html) {
-            consoleLines.push(html);
-            if (consoleLines.length > maxLines) {
-                consoleLines.splice(0, consoleLines.length - maxLines);
-            }
-            serverConsole.text = consoleLines.join("<br/>");
-            serverConsole.cursorPosition = serverConsole.length;
-        }
+    Component.onCompleted: {
+        _serverManager.checkConnection()
     }
 }

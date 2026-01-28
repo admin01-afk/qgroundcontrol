@@ -6,6 +6,8 @@ target_sources(${CMAKE_PROJECT_NAME}
     PRIVATE
         server/ServerManager.cc
         server/ServerManager.h
+        server/TelemPlaneDataModel.cc
+        server/TelemPlaneDataModel.h
         kamikaze/KamikazeLocManager.cc
         kamikaze/KamikazeLocManager.h
 )

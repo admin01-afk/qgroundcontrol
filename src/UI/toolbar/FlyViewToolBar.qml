@@ -75,19 +75,6 @@ Item {
                         height:     parent.height
                         spacing:    0
 
-                        QGCToolBarButton {
-                            id:                 qgcButton
-                            Layout.fillHeight:  true
-                            icon.source:        "/res/QGCLogoFull.svg"
-                            logo:               true
-                            onClicked:          mainWindow.showToolSelectDialog()
-                        }
-
-                        MainStatusIndicator {
-                            id:                 mainStatusIndicator
-                            Layout.fillHeight:  true
-                        }
-
                         Button {
                             text: appSettings.operationMode === AppSettings.SAVASAN
                                 ? "SAVASAN"
@@ -99,6 +86,19 @@ Item {
                                     ? AppSettings.IUAV
                                     : AppSettings.SAVASAN
                             }
+                        }
+
+                        QGCToolBarButton {
+                            id:                 qgcButton
+                            Layout.fillHeight:  true
+                            icon.source:        "/res/QGCLogoFull.svg"
+                            logo:               true
+                            onClicked:          mainWindow.showToolSelectDialog()
+                        }
+
+                        MainStatusIndicator {
+                            id:                 mainStatusIndicator
+                            Layout.fillHeight:  true
                         }
                     }
 

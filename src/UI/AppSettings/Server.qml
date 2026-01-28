@@ -9,6 +9,9 @@ Item {
     anchors.fill: parent
 
     property var _serverManager: QGroundControl.serverManager
+    property var latFields: []
+    property var lonFields: []
+
 
     ScrollView {
         anchors.fill: parent
@@ -173,9 +176,112 @@ Item {
 
                 onClicked: _serverManager.toggleTelem()
             }
+
+            /* ============= competition field ============== */
+            Rectangle {
+                Layout.fillWidth: true
+                Layout.preferredHeight: column.implicitHeight + 20
+                radius: 6
+                color: "#111111"
+                border.color: "#444"
+
+                ColumnLayout { id: column
+                    anchors.fill: parent
+                    anchors.margins: 10
+                    spacing: 8
+
+                    // Title
+                    Label {
+                        text: qsTr("Competition Field")
+                        font.pixelSize: 14
+                        font.bold: true
+                        color: "white"
+                        Layout.alignment: Qt.AlignHCenter
+                    }
+
+                    Rectangle {
+                        Layout.fillWidth: true
+                        height: 1
+                        color: "#333"
+                    }
+
+                    // Coordinates grid
+                    Repeater {
+                        model: 4
+
+                        delegate: RowLayout {
+                            spacing: 6
+                            Layout.fillWidth: true
+
+                            TextField {
+                                placeholderText: qsTr("Lat %1").arg(index + 1)
+                                Layout.fillWidth: true
+                                Component.onCompleted: latFields[index] = this
+                            }
+
+                            TextField {
+                                placeholderText: qsTr("Lon %1").arg(index + 1)
+                                Layout.fillWidth: true
+                                Component.onCompleted: lonFields[index] = this
+                            }
+                        }
+                    }
+
+                    Rectangle {
+                        Layout.fillWidth: true
+                        height: 1
+                        color: "#222"
+                    }
+
+                    // Buttons row
+                    RowLayout {
+                        Layout.fillWidth: true
+                        spacing: 8
+
+                        Button {
+                            text: qsTr("Display Field")
+                            Layout.fillWidth: true
+
+                            onClicked: {
+                                var coords = []
+
+                                for (var i = 0; i < latFields.length; i++) {
+                                    var lat = latFields[i].text
+                                    var lon = lonFields[i].text
+
+                                    if (lat !== "" && lon !== "") {
+                                        coords.push(QtPositioning.coordinate(
+                                            parseFloat(lat),
+                                            parseFloat(lon)))
+                                    }
+                                }
+                                _serverManager.setCompetitionField(coords)
+                            }
+                        }
+
+                        Button {
+                            text: qsTr("Load Test")
+                            Layout.preferredWidth: 110
+
+                            onClicked: {
+                                var testField = [
+                                    [-35.3638, 149.1628],
+                                    [-35.3638, 149.1678],
+                                    [-35.3618, 149.1678],
+                                    [-35.3618, 149.1628]
+                                ]
+
+                                for (var i = 0; i < testField.length; i++) {
+                                    latFields[i].text = testField[i][0].toFixed(6)
+                                    lonFields[i].text = testField[i][1].toFixed(6)
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
-
     /* ================= Status Signals ================= */
     Connections {
         target: _serverManager

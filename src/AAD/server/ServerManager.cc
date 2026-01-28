@@ -348,3 +348,27 @@ void ServerManager::clearLogs()
     _logs.clear();
     emit logsChanged();
 }
+
+QVariantList ServerManager::competitionField() const
+{
+    return _competitionField;
+}
+
+void ServerManager::setCompetitionField(const QVariantList& coords)
+{
+    _competitionField.clear();
+
+    for (const QVariant& v : coords) {
+        if (v.canConvert<QGeoCoordinate>()) {
+            _competitionField.append(v);
+        }
+    }
+
+    emit competitionFieldChanged();
+}
+
+void ServerManager::clearCompetitionField()
+{
+    _competitionField.clear();
+    emit competitionFieldChanged();
+}

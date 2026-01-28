@@ -8,6 +8,8 @@
 #include <QProcess>
 #include <QTimer>
 #include <QStringList>
+#include <QGeoCoordinate>
+#include <QVariantList>
 
 #include "TelemPlaneDataModel.h"
 
@@ -22,6 +24,7 @@ class ServerManager : public QObject
     Q_PROPERTY(bool telemRunning READ telemRunning NOTIFY telemRunningChanged)
     Q_PROPERTY(QStringList logs READ logs NOTIFY logsChanged)
     Q_PROPERTY(TelemPlaneDataModel* telemPlaneDataModel READ telemPlaneDataModel CONSTANT)
+    Q_PROPERTY(QVariantList competitionField READ competitionField NOTIFY competitionFieldChanged)
 
 public:
     TelemPlaneDataModel* telemPlaneDataModel() { return &_telemPlaneDataModel;}
@@ -46,21 +49,21 @@ public:
     Q_INVOKABLE void stopServerSim();
 
     Q_INVOKABLE void toggleTelem();
-
     Q_INVOKABLE void clearLogs();
+    Q_INVOKABLE void setCompetitionField(const QVariantList& coords);
+    Q_INVOKABLE void clearCompetitionField();
+    QVariantList competitionField() const;
 
 signals:
     void serversimRunningChanged();
     void telemRunningChanged();
     void logsChanged();
-
     void connectionResult(bool reachable);
     void errorOccurred(const QString& error);
-
     void loginSucceeded(int teamNumber);
     void loginFailed(const QString& reason);
-
     void qrCoordinatesReceived(const QGeoCoordinate& coord);
+    void competitionFieldChanged();
 
 private:
     // ---- Helpers ----
@@ -85,4 +88,5 @@ private:
     QTimer*   _telemTimer{nullptr};
 
     QStringList _logs;
+    QVariantList _competitionField;
 };

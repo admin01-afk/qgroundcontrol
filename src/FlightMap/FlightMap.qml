@@ -93,6 +93,21 @@ Map {
         }
     }
 
+    /* Competition Field */
+    MapPolyline {
+        line.width: 3
+        line.color: "red"
+        visible: _serverManager.competitionField.length >= 3
+
+        path: {
+            var p = _serverManager.competitionField.slice()
+            if (p.length > 2)
+                p.push(p[0])
+            return p
+        }
+    }
+
+    /* planes */
     MapItemView {
         model: QGroundControl.serverManager.telemPlaneDataModel
 

@@ -74,14 +74,14 @@ class Competition():
 
         enemy_planes = [
             {
-                "takim_numarasi": 23,
+                "takim_numarasi": 23, #
                 "iha_enlem": lat1,
                 "iha_boylam": lon1,
-                "iha_irtifa": 90.0,
+                "iha_irtifa": 90.0, #
                 "iha_dikilme": -5.0,
                 "iha_yonelme": (time.time() * 10) % 360,
                 "iha_yatis": 0.0,
-                "iha_hizi": 20.0,
+                "iha_hizi": 20.0, #
                 "zaman_farki": 0
             },
             {

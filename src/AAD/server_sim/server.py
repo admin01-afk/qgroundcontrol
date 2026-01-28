@@ -48,32 +48,7 @@ def get_server_time():
 def hss_coordinates():
     hss_koordinatlari = {
         "sunucusaati": competition.get_current_time(),
-        "hss_koordinat_bilgileri": [
-            {
-                "id": 0,
-                "hssEnlem": 39.820405,
-                "hssBoylam": 30.535008,
-                "hssYaricap": 50
-            },
-            {
-                "id": 1,
-                "hssEnlem": 39.820102,
-                "hssBoylam": 30.533414,
-                "hssYaricap": 50
-            },
-            {
-                "id": 2,
-                "hssEnlem": 39.818103,
-                "hssBoylam": 30.533780,
-                "hssYaricap": 75
-            },
-            {
-                "id": 3,
-                "hssEnlem": 39.819361,
-                "hssBoylam": 30.538181,
-                "hssYaricap": 150
-            }
-        ]
+        "hss_koordinat_bilgileri": competition.get_hss_coordinates()
     }
     return jsonify(hss_koordinatlari), 200
 

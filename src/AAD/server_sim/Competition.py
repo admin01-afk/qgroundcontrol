@@ -1,5 +1,7 @@
 from Contestant import Contestant
 from datetime import datetime
+import math
+import time
 
 class Competition():
     def __init__(self):
@@ -10,6 +12,25 @@ class Competition():
     "team1": {"password": "team123", "team_number": 2},
     "1": {"password": "1", "team_number": 3}
 }
+
+    def circle_position(self, center_lat, center_lon, radius_m, angular_speed, phase=0.0):
+        """
+        radius_m: circle radius in meters
+        angular_speed: rad/sec
+        phase: initial angle offset
+        """
+        t = time.time()
+        angle = angular_speed * t + phase
+
+        # Earth approximations
+        meters_per_deg_lat = 111_320
+        meters_per_deg_lon = 111_320 * math.cos(math.radians(center_lat))
+
+        dlat = (radius_m * math.cos(angle)) / meters_per_deg_lat
+        dlon = (radius_m * math.sin(angle)) / meters_per_deg_lon
+
+        return center_lat + dlat, center_lon + dlon
+
 
     def find_contestant(self, id):
         for index, a in enumerate(self.contestants):
@@ -34,80 +55,50 @@ class Competition():
             "konum_bilgileri": []
         }
 
-        # Example: Add multiple enemy planes manually
+        # Enemy plane 1
+        lat1, lon1 = self.circle_position(
+            center_lat=-35.3629,
+            center_lon=149.1644,
+            radius_m=120,
+            angular_speed=0.15
+        )
+
+        # Enemy plane 2 (different center + phase)
+        lat2, lon2 = self.circle_position(
+            center_lat=-35.3633,
+            center_lon=149.1651,
+            radius_m=80,
+            angular_speed=-0.2,
+            phase=math.pi
+        )
+
         enemy_planes = [
             {
                 "takim_numarasi": 23,
-                "iha_enlem": -35.36294906,
-                "iha_boylam": 149.1643906,
+                "iha_enlem": lat1,
+                "iha_boylam": lon1,
                 "iha_irtifa": 90.0,
-                "iha_dikilme": -8.0,
-                "iha_yonelme": 90.0,
+                "iha_dikilme": -5.0,
+                "iha_yonelme": (time.time() * 10) % 360,
                 "iha_yatis": 0.0,
                 "iha_hizi": 20.0,
-                "zaman_farki": 467
+                "zaman_farki": 0
             },
             {
-                "takim_numarasi": 2,
-                "iha_enlem": -35.362520,
-                "iha_boylam": 149.164950,
-                "iha_irtifa": 95.0,
-                "iha_dikilme": -5.0,
-                "iha_yonelme": 135.0,
-                "iha_yatis": 15.0,
-                "iha_hizi": 20.0,
-                "zaman_farki": 300
-            },
-            {
-                "takim_numarasi": 3,
-                "iha_enlem": -35.363180,
-                "iha_boylam": 149.163880,
+                "takim_numarasi": 24,
+                "iha_enlem": lat2,
+                "iha_boylam": lon2,
                 "iha_irtifa": 110.0,
-                "iha_dikilme": -10.0,
-                "iha_yonelme": 150.0,
-                "iha_yatis": 12.0,
-                "iha_hizi": 20.0,
-                "zaman_farki": 200
-            },
-            {
-                "takim_numarasi": 4,
-                "iha_enlem": -35.363400,
-                "iha_boylam": 149.164420,
-                "iha_irtifa": 90.0,
-                "iha_dikilme": -8.0,
-                "iha_yonelme": 127.0,
-                "iha_yatis": 19.0,
-                "iha_hizi": 20.0,
-                "zaman_farki": 467
-            },
-            {
-                "takim_numarasi": 5,
-                "iha_enlem": -35.362700,
-                "iha_boylam": 149.163700,
-                "iha_irtifa": 95.0,
-                "iha_dikilme": -5.0,
-                "iha_yonelme": 135.0,
-                "iha_yatis": 15.0,
-                "iha_hizi": 20.0,
-                "zaman_farki": 300
-            },
-            {
-                "takim_numarasi": 6,
-                "iha_enlem": -35.362300,
-                "iha_boylam": 149.164100,
-                "iha_irtifa": 110.0,
-                "iha_dikilme": -10.0,
-                "iha_yonelme": 150.0,
-                "iha_yatis": 12.0,
-                "iha_hizi": 20.0,
-                "zaman_farki": 200
+                "iha_dikilme": -3.0,
+                "iha_yonelme": (time.time() * 15) % 360,
+                "iha_yatis": 0.0,
+                "iha_hizi": 18.0,
+                "zaman_farki": 0
             }
         ]
 
-        # Append enemy planes to the response
         response_json["konum_bilgileri"].extend(enemy_planes)
 
-        # Include data from contestants (your own UAV)
         for contestant in self.contestants:
             response_json["konum_bilgileri"].append(contestant.get_info())
 
@@ -122,6 +113,35 @@ class Competition():
             "saniye": current_time.second,
             "milisaniye": current_time.microsecond // 1000
         }
+
+    def get_hss_coordinates(self):
+        hss_coordinates = [
+            {
+                "id": 0,
+                "hssEnlem": 39.820405,
+                "hssBoylam": 30.535008,
+                "hssYaricap": 50
+            },
+            {
+                "id": 1,
+                "hssEnlem": 39.820102,
+                "hssBoylam": 30.533414,
+                "hssYaricap": 50
+            },
+            {
+                "id": 2,
+                "hssEnlem": 39.818103,
+                "hssBoylam": 30.533780,
+                "hssYaricap": 75
+            },
+            {
+                "id": 3,
+                "hssEnlem": 39.819361,
+                "hssBoylam": 30.538181,
+                "hssYaricap": 150
+            }
+        ]
+        return hss_coordinates
 
     def authenticate(self, user_name, password):
         # Check if the user exists in the mock database

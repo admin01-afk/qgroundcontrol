@@ -25,6 +25,7 @@ class ServerManager : public QObject
     Q_PROPERTY(QStringList logs READ logs NOTIFY logsChanged)
     Q_PROPERTY(TelemPlaneDataModel* telemPlaneDataModel READ telemPlaneDataModel CONSTANT)
     Q_PROPERTY(QVariantList competitionField READ competitionField NOTIFY competitionFieldChanged)
+    Q_PROPERTY(QVariantList hssList READ hssList NOTIFY hssListChanged)
 
 public:
     TelemPlaneDataModel* telemPlaneDataModel() { return &_telemPlaneDataModel;}
@@ -54,6 +55,7 @@ public:
     Q_INVOKABLE void clearCompetitionField();
     QVariantList competitionField() const {return _competitionField;}
     Q_INVOKABLE void getHSS();
+    QVariantList hssList() const { return _hssList; }
 
 signals:
     void serversimRunningChanged();
@@ -65,7 +67,7 @@ signals:
     void loginFailed(const QString& reason);
     void qrCoordinatesReceived(const QGeoCoordinate& coord);
     void competitionFieldChanged();
-    void hssReceived(QVariantList hssList);
+    void hssListChanged();
 
 private:
     // ---- Helpers ----
@@ -89,4 +91,5 @@ private:
 
     QStringList _logs;
     QVariantList _competitionField;
+    QVariantList _hssList;
 };

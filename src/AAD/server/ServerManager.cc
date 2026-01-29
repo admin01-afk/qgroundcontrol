@@ -382,7 +382,8 @@ void ServerManager::getHSS()
                 return;
             }
 
-            QVariantList list;
+            _hssList.clear();
+
             QJsonArray arr = obj["hss_koordinat_bilgileri"].toArray();
             for (const QJsonValue& v : arr) {
                 QJsonObject o = v.toObject();
@@ -397,9 +398,10 @@ void ServerManager::getHSS()
                 hss["radius"] = o["hssYaricap"].toDouble();
                 hss["id"]     = o["id"].toInt();
 
-                list.append(hss);
+                _hssList.append(hss);
             }
-            emit hssReceived(list);
+
+            emit hssListChanged();
         }
     );
 }

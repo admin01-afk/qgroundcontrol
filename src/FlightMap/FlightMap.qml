@@ -132,11 +132,11 @@ Map {
 
     /* hss */
     MapItemView {
-        model: hssModel
+        model: _serverManager.hssList
 
         delegate: MapCircle {
-            center: model.center
-            radius: model.radius
+            center: modelData.center
+            radius: modelData.radius
 
             color: "#55ff0000"
             border.color: "#ff0000"
@@ -271,19 +271,6 @@ Map {
     Connections {
         target: QGroundControl.settingsManager.flightMapSettings.mapProvider
         function onRawValueChanged() { updateActiveMapType() }
-    }
-
-    Connections {
-        target: _serverManager
-        function onHssReceived(list) {
-            hssModel.clear()
-            for (let i = 0; i < list.length; i++) {
-                hssModel.append({
-                    center: list[i].center,
-                    radius: list[i].radius
-                })
-            }
-        }
     }
 
     signal mapPanStart

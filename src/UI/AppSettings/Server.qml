@@ -5,6 +5,8 @@ import QtPositioning 5.15
 
 import QGroundControl
 
+// TODO add clear button to fields
+
 Item {
     anchors.fill: parent
 
@@ -275,6 +277,7 @@ Item {
                                     latFields[i].text = testField[i][0].toFixed(6)
                                     lonFields[i].text = testField[i][1].toFixed(6)
                                 }
+                                _serverManager.setCompetitionField(coords)
                             }
                         }
                     }

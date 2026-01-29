@@ -15,6 +15,8 @@ Map {
     plugin:     Plugin { name: "QGroundControl" }
     opacity:    0.99 // https://bugreports.qt.io/browse/QTBUG-82185
 
+    ListModel { id: hssModel }
+
     property string mapName:                        'defaultMap'
     property bool   isSatelliteMap:                 activeMapType.name.indexOf("Satellite") > -1 || activeMapType.name.indexOf("Hybrid") > -1
     property var    gcsPosition:                    QGroundControl.qgcPositionManger.gcsPosition
@@ -95,8 +97,8 @@ Map {
 
     /* Competition Field */
     MapPolyline {
-        line.width: 3
-        line.color: "red"
+        line.width: 1
+        line.color: "blue"
         visible: _serverManager.competitionField.length >= 3
 
         path: {
@@ -128,6 +130,19 @@ Map {
         }
     }
 
+    /* hss */
+    MapItemView {
+        model: hssModel
+
+        delegate: MapCircle {
+            center: model.center
+            radius: model.radius
+
+            color: "#55ff0000"
+            border.color: "#ff0000"
+            border.width: 2
+        }
+    }
 
     // QR icon at set location
     MapQuickItem {
@@ -156,6 +171,23 @@ Map {
                 origin.y:       kamikaze_icon.height / 2
                 angle:          0
             }
+        }
+    }
+
+    QGCButton {
+        text: qsTr("Get HSS")
+        z: 10000
+        width: 100
+        primary: true
+
+        anchors {
+            bottom: parent.bottom
+            left: parent.left
+            margins: ScreenTools.defaultMargin
+        }
+
+        onClicked: {
+            _map._serverManager.getHSS()
         }
     }
 
@@ -239,6 +271,19 @@ Map {
     Connections {
         target: QGroundControl.settingsManager.flightMapSettings.mapProvider
         function onRawValueChanged() { updateActiveMapType() }
+    }
+
+    Connections {
+        target: _serverManager
+        function onHssReceived(list) {
+            hssModel.clear()
+            for (let i = 0; i < list.length; i++) {
+                hssModel.append({
+                    center: list[i].center,
+                    radius: list[i].radius
+                })
+            }
+        }
     }
 
     signal mapPanStart
@@ -345,7 +390,7 @@ Map {
     }
 
     Item {
-        id: floatingContext
+        id: rightClickPanel
         visible: false
         x: popupX
         y: popupY
@@ -374,7 +419,7 @@ Map {
                         if (_rightClickCoordinate) {
                             _kamikazeLocManager.setCoordinate(_rightClickCoordinate)
                         }
-                        floatingContext.visible = false
+                        rightClickPanel.visible = false
                     }
                 }
 
@@ -384,7 +429,7 @@ Map {
 
                     onClicked: {
                         _kamikazeLocManager.clearCoordinate()
-                        floatingContext.visible = false
+                        rightClickPanel.visible = false
                     }
                 }
 
@@ -395,7 +440,7 @@ Map {
                     width: parent.width
                     flat: true
 
-                    onClicked: floatingContext.visible = false
+                    onClicked: rightClickPanel.visible = false
                 }
             }
         }
@@ -411,7 +456,7 @@ Map {
                 _rightClickCoordinate = _map.toCoordinate(Qt.point(mouse.x, mouse.y), false)
                 popupX = mouse.x
                 popupY = mouse.y
-                floatingContext.visible = true
+                rightClickPanel.visible = true
             }
         }
     }

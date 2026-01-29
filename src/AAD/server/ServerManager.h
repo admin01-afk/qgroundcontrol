@@ -52,7 +52,8 @@ public:
     Q_INVOKABLE void clearLogs();
     Q_INVOKABLE void setCompetitionField(const QVariantList& coords);
     Q_INVOKABLE void clearCompetitionField();
-    QVariantList competitionField() const;
+    QVariantList competitionField() const {return _competitionField;}
+    Q_INVOKABLE void getHSS();
 
 signals:
     void serversimRunningChanged();
@@ -64,6 +65,7 @@ signals:
     void loginFailed(const QString& reason);
     void qrCoordinatesReceived(const QGeoCoordinate& coord);
     void competitionFieldChanged();
+    void hssReceived(QVariantList hssList);
 
 private:
     // ---- Helpers ----
@@ -79,8 +81,6 @@ private:
     void _telemLoop();
 
     TelemPlaneDataModel _telemPlaneDataModel;
-
-private:
     QNetworkAccessManager* _nam{nullptr};
     QString                _baseUrl{"http://127.0.0.1:5000"};
 

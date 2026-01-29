@@ -118,27 +118,9 @@ class Competition():
         hss_coordinates = [
             {
                 "id": 0,
-                "hssEnlem": 39.820405,
-                "hssBoylam": 30.535008,
+                "hssEnlem": -35.363125,
+                "hssBoylam": 149.1642296,
                 "hssYaricap": 50
-            },
-            {
-                "id": 1,
-                "hssEnlem": 39.820102,
-                "hssBoylam": 30.533414,
-                "hssYaricap": 50
-            },
-            {
-                "id": 2,
-                "hssEnlem": 39.818103,
-                "hssBoylam": 30.533780,
-                "hssYaricap": 75
-            },
-            {
-                "id": 3,
-                "hssEnlem": 39.819361,
-                "hssBoylam": 30.538181,
-                "hssYaricap": 150
             }
         ]
         return hss_coordinates

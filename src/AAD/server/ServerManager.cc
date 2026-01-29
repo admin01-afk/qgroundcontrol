@@ -349,11 +349,6 @@ void ServerManager::clearLogs()
     emit logsChanged();
 }
 
-QVariantList ServerManager::competitionField() const
-{
-    return _competitionField;
-}
-
 void ServerManager::setCompetitionField(const QVariantList& coords)
 {
     _competitionField.clear();
@@ -371,4 +366,40 @@ void ServerManager::clearCompetitionField()
 {
     _competitionField.clear();
     emit competitionFieldChanged();
+}
+
+void ServerManager::getHSS()
+{
+    requestJson(
+        QNetworkAccessManager::GetOperation,
+        "/api/hss_koordinatlari",
+        nullptr,
+        [this](const QJsonObject& obj)
+        {
+            if (!obj.contains("hss_koordinat_bilgileri") ||
+                !obj["hss_koordinat_bilgileri"].isArray()) {
+                emit errorOccurred("Invalid HSS payload");
+                return;
+            }
+
+            QVariantList list;
+            QJsonArray arr = obj["hss_koordinat_bilgileri"].toArray();
+            for (const QJsonValue& v : arr) {
+                QJsonObject o = v.toObject();
+
+                QVariantMap hss;
+                hss["center"] = QVariant::fromValue(
+                    QGeoCoordinate(
+                        o["hssEnlem"].toDouble(),
+                        o["hssBoylam"].toDouble()
+                    )
+                );
+                hss["radius"] = o["hssYaricap"].toDouble();
+                hss["id"]     = o["id"].toInt();
+
+                list.append(hss);
+            }
+            emit hssReceived(list);
+        }
+    );
 }

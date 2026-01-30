@@ -26,7 +26,7 @@ QtObject {
             visible:    guidedController.showContinueMission
         },
         {
-            title:      guidedController.changeAltTitle,
+            title:      qsTr("Set Alt"),
             text:       guidedController.changeAltMessage,
             action:     guidedController.actionChangeAlt,
             visible:    guidedController.showChangeAlt
@@ -44,7 +44,7 @@ QtObject {
             visible:    guidedController.showLandAbort
         },
         {
-            title:      guidedController.changeSpeedTitle,
+            title:      qsTr("Set Speed"),
             text:       guidedController.changeSpeedMessage,
             action:     guidedController.actionChangeSpeed,
             visible:    guidedController.showChangeSpeed

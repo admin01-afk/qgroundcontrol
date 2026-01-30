@@ -112,6 +112,10 @@ Button {
                 text:                       control.text
                 color:                      _currentContentColor
                 anchors.horizontalCenter:   parent.horizontalCenter
+                width:                      contentLayoutItem.width * 0.95
+                horizontalAlignment:        Text.AlignHCenter
+                elide:                      Text.ElideRight
+                wrapMode:                   Text.WordWrap
                 font.bold:                  !innerImage.visible && !innerImageColorful.visible
                 opacity:                    !innerImage.visible ? 0.8 : 1.0
             }

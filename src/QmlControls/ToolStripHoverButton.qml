@@ -6,7 +6,7 @@ import QGroundControl.Controls
 
 Button {
     id:             control
-    width:          contentLayoutItem.contentWidth + (contentMargins * 2)
+    implicitWidth:  contentLayoutItem.contentWidth + (contentMargins * 2)
     height:         width
     hoverEnabled:   !ScreenTools.isMobile
     enabled:        toolStripAction.enabled
@@ -112,7 +112,6 @@ Button {
                 text:                       control.text
                 color:                      _currentContentColor
                 anchors.horizontalCenter:   parent.horizontalCenter
-                width:                      contentLayoutItem.width * 0.95
                 horizontalAlignment:        Text.AlignHCenter
                 elide:                      Text.ElideRight
                 wrapMode:                   Text.WordWrap

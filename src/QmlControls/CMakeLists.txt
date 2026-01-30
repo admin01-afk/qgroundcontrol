@@ -156,6 +156,7 @@ qt_add_qml_module(QGroundControlControlsModule
         QGCRadioButton.qml
         QGCRoundButton.qml
         QGCSimpleMessageDialog.qml
+        QGCNumberEntryDialog.qml
         QGCSlider.qml
         QGCSwipeView.qml
         QGCTabBar.qml

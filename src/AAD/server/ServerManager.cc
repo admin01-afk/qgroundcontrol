@@ -281,6 +281,7 @@ bool ServerManager::serversimRunning() const
 
 /* ============================================================================
  * Telemetry Loop
+  TODO verify telem hz -> warn, clear last telem plane data from server(remove icons in map)
  * ========================================================================== */
 
 void ServerManager::_telemLoop()
@@ -307,11 +308,15 @@ void ServerManager::_telemLoop()
                 double lat = o["iha_enlem"].toDouble();
                 double lon = o["iha_boylam"].toDouble();
                 double heading = o["iha_yonelme"].toDouble(0.0);  // Default to 0 if not present
+                double alt = o["iha_irtifa"].toDouble();
+                double speed = o["iha_hizi"].toDouble();
 
                 _telemPlaneDataModel.updateAircraft(
                     teamId,
                     QGeoCoordinate(lat, lon),
-                    heading
+                    heading,
+                    alt,
+                    speed
                 );
             }
         }

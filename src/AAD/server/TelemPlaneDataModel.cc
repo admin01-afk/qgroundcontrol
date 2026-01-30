@@ -15,6 +15,8 @@ QVariant TelemPlaneDataModel::data(const QModelIndex& idx, int role) const {
         case TeamIdRole: return a.teamId;
         case CoordinateRole: return QVariant::fromValue(a.coord);
         case HeadingRole: return a.heading;
+        case AltRole: return a.alt;
+        case SpeedRole: return a.speed;
     }
     return {};
 }
@@ -23,23 +25,27 @@ QHash<int, QByteArray> TelemPlaneDataModel::roleNames() const {
     return {
         { TeamIdRole, "teamId" },
         { CoordinateRole, "coordinate" },
-        { HeadingRole, "heading" }
+        { HeadingRole, "heading" },
+        { AltRole, "alt"},
+        { SpeedRole, "speed"}
     };
 }
 
-void TelemPlaneDataModel::updateAircraft(int teamId, const QGeoCoordinate& coord, double heading)
+void TelemPlaneDataModel::updateAircraft(int teamId, const QGeoCoordinate& coord, double heading, double alt, double speed)
 {
     for (int i = 0; i < _aircraft.size(); ++i) {
         if (_aircraft[i].teamId == teamId) {
             _aircraft[i].coord = coord;
             _aircraft[i].heading = heading;
-            emit dataChanged(index(i), index(i), { CoordinateRole, HeadingRole });
+            _aircraft[i].alt = alt;
+            _aircraft[i].speed = speed;
+            emit dataChanged(index(i), index(i), { CoordinateRole, HeadingRole, AltRole, SpeedRole });
             return;
         }
     }
 
     // new aircraft
     beginInsertRows({}, _aircraft.size(), _aircraft.size());
-    _aircraft.append({ teamId, coord, heading });
+    _aircraft.append({ teamId, coord, heading, alt, speed });
     endInsertRows();
 }

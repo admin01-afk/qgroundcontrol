@@ -117,9 +117,11 @@ Map {
             anchorPoint.y: planeIcon.height / 2
             coordinate: model.coordinate
 
-            sourceItem: Item {
-                width: planeIcon.width
-                height: planeIcon.height + teamLabel.height + 4
+            sourceItem: MouseArea {
+                width: planeIcon.width + 4 // arbitrary hover area increase
+                height: planeIcon.height + teamLabel.height + 8
+                hoverEnabled: true
+                acceptedButtons: Qt.NoButton
 
                 Image {
                     id: planeIcon
@@ -130,6 +132,8 @@ Map {
 
                     property real baseSize: ScreenTools.defaultFontPixelHeight * 0.25
                     property real referenceZoom: 15
+
+                    opacity: parent.containsMouse ? 1 : 0.8
 
                     width:  baseSize * Math.pow(2, _map.zoomLevel - referenceZoom)
                     height: width
@@ -147,6 +151,30 @@ Map {
                     id: teamLabel
                     text: "ID: " + model.teamId
                     anchors.top: planeIcon.bottom
+                    anchors.topMargin: 2
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    font.pixelSize: ScreenTools.defaultFontPixelHeight * 0.6
+                    color: "white"
+                    style: Text.Outline
+                    styleColor: "black"
+                }
+                Text {
+                    opacity: parent.containsMouse ? 1 : 0
+                    id: altLabel
+                    text: "alt: " + model.alt
+                    anchors.top: teamLabel.bottom
+                    anchors.topMargin: 2
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    font.pixelSize: ScreenTools.defaultFontPixelHeight * 0.6
+                    color: "white"
+                    style: Text.Outline
+                    styleColor: "black"
+                }
+                Text {
+                    opacity: parent.containsMouse ? 1 : 0
+                    id: speedLabel
+                    text: "speed: " + model.speed
+                    anchors.top: altLabel.bottom
                     anchors.topMargin: 2
                     anchors.horizontalCenter: parent.horizontalCenter
                     font.pixelSize: ScreenTools.defaultFontPixelHeight * 0.6
@@ -504,6 +532,8 @@ Map {
         anchors.fill: parent
         hoverEnabled: true
         acceptedButtons: Qt.LeftButton
+        propagateComposedEvents: true
+        z: -1
 
         onPressed: function(mouse) {
             forceActiveFocus() // restore keyboard focus to the Map

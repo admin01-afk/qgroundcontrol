@@ -56,14 +56,18 @@ class Competition():
         }
 
         # Enemy plane 1
+        t = time.time()
+        angle1 = 0.15 * t
         lat1, lon1 = self.circle_position(
             center_lat=-35.3629,
             center_lon=149.1644,
             radius_m=120,
             angular_speed=0.15
         )
+        heading1 = (math.degrees(angle1) + 90) % 360
 
-        # Enemy plane 2 (different center + phase)
+        # Enemy plane 2 (different center + phase, clockwise rotation)
+        angle2 = -0.2 * t + math.pi
         lat2, lon2 = self.circle_position(
             center_lat=-35.3633,
             center_lon=149.1651,
@@ -71,26 +75,27 @@ class Competition():
             angular_speed=-0.2,
             phase=math.pi
         )
+        heading2 = (math.degrees(angle2) - 90) % 360  # Subtract 90° for clockwise motion
 
         enemy_planes = [
             {
-                "takim_numarasi": 23, #
+                "takim_numarasi": 1, #
                 "iha_enlem": lat1,
                 "iha_boylam": lon1,
                 "iha_irtifa": 90.0, #
                 "iha_dikilme": -5.0,
-                "iha_yonelme": (time.time() * 10) % 360,
+                "iha_yonelme": heading1,
                 "iha_yatis": 0.0,
                 "iha_hizi": 20.0, #
                 "zaman_farki": 0
             },
             {
-                "takim_numarasi": 24,
+                "takim_numarasi": 2,
                 "iha_enlem": lat2,
                 "iha_boylam": lon2,
                 "iha_irtifa": 110.0,
                 "iha_dikilme": -3.0,
-                "iha_yonelme": (time.time() * 15) % 360,
+                "iha_yonelme": heading2,
                 "iha_yatis": 0.0,
                 "iha_hizi": 18.0,
                 "zaman_farki": 0

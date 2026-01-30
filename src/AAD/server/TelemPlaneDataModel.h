@@ -7,6 +7,7 @@
 struct AircraftData {
     int teamId;
     QGeoCoordinate coord;
+    double heading = 0.0;
 };
 
 class TelemPlaneDataModel : public QAbstractListModel {
@@ -14,7 +15,8 @@ class TelemPlaneDataModel : public QAbstractListModel {
 public:
     enum roles {
         TeamIdRole = Qt::UserRole + 1,
-        CoordinateRole
+        CoordinateRole,
+        HeadingRole
     };
 
     explicit TelemPlaneDataModel(QObject* parent = nullptr);
@@ -23,7 +25,7 @@ public:
     QVariant data(const QModelIndex&, int role) const override;
     QHash<int, QByteArray> roleNames() const override;
 
-    void updateAircraft(int teamId, const QGeoCoordinate& coord);
+    void updateAircraft(int teamId, const QGeoCoordinate& coord, double heading = 0.0);
 
 private:
     QList<AircraftData> _aircraft;

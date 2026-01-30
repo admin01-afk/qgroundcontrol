@@ -108,24 +108,52 @@ Map {
             return p
         }
     }
-
     /* planes */
     MapItemView {
         model: QGroundControl.serverManager.telemPlaneDataModel
 
         delegate: MapQuickItem {
-            anchorPoint.x: dot.width / 2
-            anchorPoint.y: dot.height / 2
+            anchorPoint.x: planeIcon.width / 2
+            anchorPoint.y: planeIcon.height / 2
             coordinate: model.coordinate
 
-            sourceItem: Rectangle {
-                id: dot
-                width: ScreenTools.defaultFontPixelHeight / 3
-                height: width
-                radius: width / 2
-                color: "red"
-                border.color: "white"
-                border.width: 1
+            sourceItem: Item {
+                width: planeIcon.width
+                height: planeIcon.height + teamLabel.height + 4
+
+                Image {
+                    id: planeIcon
+                    source: "/res/QGCLogoArrow.svg"
+                    mipmap: true
+                    antialiasing: true
+                    fillMode: Image.PreserveAspectFit
+
+                    property real baseSize: ScreenTools.defaultFontPixelHeight * 0.25
+                    property real referenceZoom: 15
+
+                    width:  baseSize * Math.pow(2, _map.zoomLevel - referenceZoom)
+                    height: width
+
+                    sourceSize.height: height
+
+                    transform: Rotation {
+                        origin.x: planeIcon.width / 2
+                        origin.y: planeIcon.height / 2
+                        angle: model.heading
+                    }
+                }
+
+                Text {
+                    id: teamLabel
+                    text: "ID: " + model.teamId
+                    anchors.top: planeIcon.bottom
+                    anchors.topMargin: 2
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    font.pixelSize: ScreenTools.defaultFontPixelHeight * 0.6
+                    color: "white"
+                    style: Text.Outline
+                    styleColor: "black"
+                }
             }
         }
     }

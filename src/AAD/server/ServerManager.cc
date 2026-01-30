@@ -306,10 +306,12 @@ void ServerManager::_telemLoop()
                 int teamId = o["takim_numarasi"].toInt();
                 double lat = o["iha_enlem"].toDouble();
                 double lon = o["iha_boylam"].toDouble();
+                double heading = o["iha_yonelme"].toDouble(0.0);  // Default to 0 if not present
 
                 _telemPlaneDataModel.updateAircraft(
                     teamId,
-                    QGeoCoordinate(lat, lon)
+                    QGeoCoordinate(lat, lon),
+                    heading
                 );
             }
         }

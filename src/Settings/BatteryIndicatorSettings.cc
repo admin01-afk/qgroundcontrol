@@ -6,6 +6,9 @@ DECLARE_SETTINGGROUP(BatteryIndicator, "BatteryIndicator")
 {
 }
 
+DECLARE_SETTINGSFACT(BatteryIndicatorSettings, warnThreshold1)
+DECLARE_SETTINGSFACT(BatteryIndicatorSettings, warnThreshold2)
+
 DECLARE_SETTINGSFACT(BatteryIndicatorSettings, valueDisplay)
 DECLARE_SETTINGSFACT(BatteryIndicatorSettings, consolidateMultipleBatteries)
 

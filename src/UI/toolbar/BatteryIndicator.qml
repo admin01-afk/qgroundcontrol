@@ -34,8 +34,9 @@ Item {
     property int threshold2: _batterySettings.threshold2.rawValue //60
 
     // warning thresholds
-    property int warnThreshold1: 60
-    property int warnThreshold2: 30
+    property int warnThreshold1: _batterySettings.warnThreshold1.rawValue
+    property int warnThreshold2: _batterySettings.warnThreshold2.rawValue
+
 
     function _recalcLowestBatteryIdFromVoltage() {
         if (_activeVehicle) {
@@ -513,6 +514,48 @@ Item {
                     fact:       _batterySettings.valueDisplay
                     visible:    fact.visible
                 }
+
+                ColumnLayout {
+                    RowLayout {
+                        Layout.fillWidth: true
+                        QGCLabel {
+                            text: qsTr("Warn Threshold 1 (higher)")
+                            verticalAlignment: Text.AlignVCenter
+                            Layout.preferredWidth: ScreenTools.defaultFontPixelWidth * 25
+                            wrapMode: Text.NoWrap
+                        }
+
+                        FactTextField {
+                            Layout.fillWidth: true
+                            Layout.preferredWidth: ScreenTools.defaultFontPixelWidth
+                            fact: _batterySettings.warnThreshold1
+                            onEditingFinished: {
+                                _warning1warned = false
+                                fact.value = parseInt(text)
+                            }
+                        }
+                    }
+                    RowLayout {
+                        Layout.fillWidth: true
+                        QGCLabel {
+                            text: qsTr("Warn Threshold 2 (lower)")
+                            verticalAlignment: Text.AlignVCenter
+                            Layout.preferredWidth: ScreenTools.defaultFontPixelWidth * 25
+                            wrapMode: Text.NoWrap
+                        }
+
+                        FactTextField {
+                            Layout.fillWidth: true
+                            Layout.preferredWidth: ScreenTools.defaultFontPixelWidth
+                            fact: _batterySettings.warnThreshold2
+                            onEditingFinished: {
+                                _warning2warned = false
+                                fact.value = parseInt(text)
+                            }
+                        }
+                    }
+                }
+
 
                 ColumnLayout {
                     QGCLabel { text: qsTr("Coloring") }

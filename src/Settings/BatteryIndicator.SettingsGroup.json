@@ -29,6 +29,18 @@
             "shortDesc": "Consolidate multiple battery readings",
             "type": "bool",
             "default": true
+        },
+        {
+          "name": "warnThreshold1",
+          "type": "uint32",
+          "default": 60,
+          "units": "%"
+        },
+        {
+          "name": "warnThreshold2",
+          "type": "uint32",
+          "default": 30,
+          "units": "%"
         }
     ]
 }

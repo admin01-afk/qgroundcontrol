@@ -73,7 +73,7 @@ Item {
                     RowLayout {
                         id:         mainStatusLayout
                         height:     parent.height
-                        spacing:    0
+                        spacing:    5
 
                         QGCToolBarButton {
                             id:                 qgcButton

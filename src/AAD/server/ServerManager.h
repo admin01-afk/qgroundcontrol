@@ -62,7 +62,7 @@ signals:
     void telemRunningChanged();
     void logsChanged();
     void connectionResult(bool reachable);
-    void errorOccurred(const QString& error);
+    void errorOccurred(const QString& header, const QString& error);
     void loginSucceeded(int teamNumber);
     void loginFailed(const QString& reason);
     void qrCoordinatesReceived(const QGeoCoordinate& coord);

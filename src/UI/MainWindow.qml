@@ -20,6 +20,24 @@ ApplicationWindow {
     // The special casing for android prevents white bars from showing up on the edges of the screen with newer android versions
     flags:      Qt.Window | (ScreenTools.isAndroid ? Qt.ExpandedClientAreaHint | Qt.NoTitleBarBackgroundHint : 0)
 
+    property bool   _utmspSendActTrigger
+    property var    _serverManager:             QGroundControl.serverManager
+    property string _lastErrorKey: ""
+
+    Connections {
+        target: _serverManager
+
+        function onErrorOccurred(header,message) {
+            const key = header + "::" + message
+            if (key === mainWindow._lastErrorKey) return
+            mainWindow._lastErrorKey = key
+            mainWindow.showMessageDialog(
+                header,
+                message
+            )
+        }
+    }
+
     Component.onCompleted: {
         // Start the sequence of first run prompt(s)
         firstRunPromptManager.nextPrompt()

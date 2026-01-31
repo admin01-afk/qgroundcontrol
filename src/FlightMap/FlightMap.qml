@@ -230,6 +230,7 @@ Map {
         }
     }
 
+    // Get HSS
     QGCButton {
         text: qsTr("Get HSS")
         z: 10000
@@ -541,13 +542,6 @@ Map {
         }
 
         onEntered: function() { forceActiveFocus() }
-    }
-
-
-    PositionSource {
-        id: deviceLocation
-        active: true
-        preferredPositioningMethods: PositionSource.SatellitePositioningMethods | PositionSource.NonSatellitePositioningMethods
     }
 
 } // Map

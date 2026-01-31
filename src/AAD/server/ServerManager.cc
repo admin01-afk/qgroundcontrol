@@ -51,7 +51,16 @@ ServerManager::ServerManager(QObject* parent)
 /* ============================================================================
  * HTTP / JSON Helper Utilities
  * ========================================================================== */
-
+static QString opToString(QNetworkAccessManager::Operation op)
+{
+    switch (op) {
+    case QNetworkAccessManager::GetOperation:    return "GET";
+    case QNetworkAccessManager::PostOperation:   return "POST";
+    case QNetworkAccessManager::PutOperation:    return "PUT";
+    case QNetworkAccessManager::DeleteOperation: return "DELETE";
+    default:                                     return "UNKNOWN";
+    }
+}
 void ServerManager::requestJson(
     QNetworkAccessManager::Operation op,
     const QString& path,
@@ -74,12 +83,12 @@ void ServerManager::requestJson(
         reply = _nam->post(req, payload);
     }
     else {
-        emit errorOccurred("Unsupported HTTP operation");
+        emit errorOccurred("error requesting json","Unsupported HTTP operation");
         return;
     }
 
     connect(reply, &QNetworkReply::finished, this,
-        [this, reply, onSuccess]()
+        [this, reply, onSuccess, op, path]()
         {
             const int httpStatus =
                 reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
@@ -89,10 +98,13 @@ void ServerManager::requestJson(
             // Network-level error
             if (reply->error() != QNetworkReply::NoError) {
                 emit errorOccurred(
-                    QString("HTTP %1: %2\n%3")
-                        .arg(httpStatus)
-                        .arg(reply->errorString())
-                        .arg(QString::fromUtf8(data))
+                    tr("Network Error"),
+                    QString("%1 %2\nHTTP %3: %4\n%5")
+                        .arg(opToString(op))          // GET / POST / ...
+                        .arg(path)                    // endpoint path
+                        .arg(httpStatus)              // HTTP code
+                        .arg(reply->errorString())    // Qt error
+                        .arg(QString::fromUtf8(data)) // server body (if any)
                 );
                 reply->deleteLater();
                 return;
@@ -103,7 +115,7 @@ void ServerManager::requestJson(
             QJsonDocument doc = QJsonDocument::fromJson(data, &err);
 
             if (err.error != QJsonParseError::NoError || !doc.isObject()) {
-                emit errorOccurred(
+                emit errorOccurred( "error parsing json",
                     QString("Invalid JSON response (HTTP %1)").arg(httpStatus)
                 );
                 reply->deleteLater();
@@ -178,7 +190,7 @@ void ServerManager::getQRCoordinates()
         [this](const QJsonObject& obj)
         {
             if (!obj.contains("qrEnlem") || !obj.contains("qrBoylam")) {
-                emit errorOccurred("Invalid QR coordinate payload");
+                emit errorOccurred("error getting QR","Invalid QR coordinate payload");
                 return;
             }
 
@@ -375,6 +387,41 @@ void ServerManager::clearCompetitionField()
     emit competitionFieldChanged();
 }
 
+static bool validateHssObject(
+    const QJsonObject& o,
+    QString* errorOut = nullptr)
+{
+    struct Key {
+        const char* name;
+        QJsonValue::Type type;
+    };
+
+    static const Key requiredKeys[] = {
+        { "id",          QJsonValue::Double },
+        { "hssEnlem",    QJsonValue::Double },
+        { "hssBoylam",   QJsonValue::Double },
+        { "hssYaricap",  QJsonValue::Double }
+    };
+
+    for (const Key& k : requiredKeys) {
+        if (!o.contains(k.name)) {
+            if (errorOut)
+                *errorOut = QString("HSS entry missing key: %1").arg(k.name);
+            return false;
+        }
+
+        if (o[k.name].type() != k.type) {
+            if (errorOut)
+                *errorOut = QString(
+                    "HSS key '%1' has wrong type"
+                ).arg(k.name);
+            return false;
+        }
+    }
+
+    return true;
+}
+
 void ServerManager::getHSS()
 {
     requestJson(
@@ -385,15 +432,29 @@ void ServerManager::getHSS()
         {
             if (!obj.contains("hss_koordinat_bilgileri") ||
                 !obj["hss_koordinat_bilgileri"].isArray()) {
-                emit errorOccurred("Invalid HSS payload");
+                emit errorOccurred("error getting HSS","Invalid HSS payload");
                 return;
             }
 
             _hssList.clear();
 
             QJsonArray arr = obj["hss_koordinat_bilgileri"].toArray();
+            if (arr.isEmpty()) {emit errorOccurred("Warning\n getting HSS","Server returned empty HSS list"); emit hssListChanged(); return;}
             for (const QJsonValue& v : arr) {
+                if (!v.isObject()) {
+                    emit errorOccurred("Error getting HSS", "Invalid HSS entry (not object)");
+                    continue;
+                }
                 QJsonObject o = v.toObject();
+
+                QString validationError;
+                if (!validateHssObject(o, &validationError)) {
+                    emit errorOccurred(
+                        "Error getting HSS",
+                        validationError
+                    );
+                    continue;
+                }
 
                 QVariantMap hss;
                 hss["center"] = QVariant::fromValue(

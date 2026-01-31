@@ -24,10 +24,18 @@ Item {
     property bool   _showVoltage:       _indicatorDisplay.rawValue === 1
     property bool   _showBoth:          _indicatorDisplay.rawValue === 2
     property int    _lowestBatteryId:   -1      // -1: show all batteries, otherwise show only battery with this id
+    property var _nominalV: 0
+    property int _nominalWeightCount: 0
+    property bool _warning1warned: false
+    property bool _warning2warned: false
 
     // Properties to hold the thresholds
-    property int threshold1: _batterySettings.threshold1.rawValue
-    property int threshold2: _batterySettings.threshold2.rawValue
+    property int threshold1: _batterySettings.threshold1.rawValue //
+    property int threshold2: _batterySettings.threshold2.rawValue //60
+
+    // warning thresholds
+    property int warnThreshold1: 60
+    property int warnThreshold2: 30
 
     function _recalcLowestBatteryIdFromVoltage() {
         if (_activeVehicle) {
@@ -154,6 +162,47 @@ Item {
             _recalcLowestBatteryIdFromChargeState()
         }
     }
+
+    function _updateNominalV() {
+
+        var currentV = _activeVehicle.batteries.get(0).voltage.rawValue
+
+        _nominalV = (currentV + (_nominalV * _nominalWeightCount))
+                    / (_nominalWeightCount + 1)
+        _nominalWeightCount++
+    }
+
+    function _checkRemainingPossiblyWarn() {
+        if (!_activeVehicle || !_activeVehicle.armed) {
+            return   // 🚫 do not warn before arming
+        }
+
+        var percent = _activeVehicle.batteries.get(0).percentRemaining.rawValue
+
+        if (isNaN(percent)) {
+            return
+        }
+
+        // Critical first (lower threshold)
+        if (percent <= warnThreshold2 && !_warning2warned) {
+            mainWindow.showMessageDialog(
+                qsTr("Battery Warning"),
+                qsTr("Battery critically low (%1%).\nLand immediately.")
+                    .arg(percent.toFixed(1)))
+            _warning2warned = true
+            return
+        }
+
+        // Low warning
+        if (percent <= warnThreshold1 && !_warning1warned) {
+            mainWindow.showMessageDialog(
+                qsTr("Battery Warning"),
+                qsTr("Battery low (%1%).")
+                    .arg(percent.toFixed(1)))
+            _warning1warned = true
+        }
+    }
+
 
     Component.onCompleted: _recalcLowestBatteryId()
 
@@ -330,16 +379,26 @@ Item {
                     verticalAlignment:      Text.AlignVCenter
                     color:                  qgcPal.windowTransparentText
                     text:                   getBatteryPercentageText()
-                    font.pointSize:         _showBoth ? ScreenTools.defaultFontPointSize : ScreenTools.mediumFontPointSize
+                    font.pointSize:         _showBoth ? ScreenTools.smallFontPointSize : ScreenTools.defaultFontPointSize
                     visible:                _showBoth || _showPercentage
                 }
 
                 QGCLabel {
                     Layout.alignment:       Qt.AlignHCenter
-                    font.pointSize:         _showBoth ? ScreenTools.defaultFontPointSize : ScreenTools.mediumFontPointSize
+                    font.pointSize:         _showBoth ? ScreenTools.smallFontPointSize : ScreenTools.defaultFontPointSize
                     color:                  qgcPal.windowTransparentText
                     text:                   getBatteryVoltageText()
                     visible:                _showBoth || _showVoltage
+                }
+
+                QGCLabel {
+                    Layout.alignment:       Qt.AlignHCenter
+                    font.pointSize:         _showBoth ? ScreenTools.smallFontPointSize : ScreenTools.defaultFontPointSize
+                    color:                  qgcPal.windowTransparentText
+                    text: {
+                        return qsTr("Nominal: ") + (isNaN(_nominalV) ? qsTr("n/a") : _nominalV.toFixed(2) + " V")
+                    }
+                    visible: true
                 }
             }
         }
@@ -567,6 +626,16 @@ Item {
                     }
                 }
             }
+        }
+    }
+
+    Connections {
+        target: _activeVehicle && _activeVehicle.batteries.count > 0
+                ? _activeVehicle.batteries.get(0).voltage
+                : null
+
+        function onRawValueChanged() {
+            control._updateNominalV() ; control._checkRemainingPossiblyWarn()
         }
     }
 }

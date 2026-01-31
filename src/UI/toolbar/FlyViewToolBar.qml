@@ -75,6 +75,14 @@ Item {
                         height:     parent.height
                         spacing:    0
 
+                        QGCToolBarButton {
+                            id:                 qgcButton
+                            Layout.fillHeight:  true
+                            icon.source:        "/res/AADLogo.jpeg"
+                            logo:               true
+                            onClicked:          mainWindow.showToolSelectDialog()
+                        }
+
                         Button {
                             text: appSettings.operationMode === AppSettings.SAVASAN
                                 ? "SAVASAN"
@@ -86,14 +94,6 @@ Item {
                                     ? AppSettings.IUAV
                                     : AppSettings.SAVASAN
                             }
-                        }
-
-                        QGCToolBarButton {
-                            id:                 qgcButton
-                            Layout.fillHeight:  true
-                            icon.source:        "/res/QGCLogoFull.svg"
-                            logo:               true
-                            onClicked:          mainWindow.showToolSelectDialog()
                         }
 
                         MainStatusIndicator {

@@ -44,7 +44,7 @@ public:
 
     Q_INVOKABLE void login(const QString& username, const QString& password);
     Q_INVOKABLE void getQRCoordinates();
-    Q_INVOKABLE void checkConnection();
+    Q_INVOKABLE void checkConnection(bool emitErr = true);
 
     Q_INVOKABLE void startServerSim();
     Q_INVOKABLE void stopServerSim();

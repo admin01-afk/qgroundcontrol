@@ -4,84 +4,83 @@ import QtQuick.Layouts 1.15
 import QtPositioning 5.15
 
 import QGroundControl
+import QGroundControl.Controls
+import QGroundControl.FactControls
 
-Item {
+SettingsPage {
+    id: page
+    anchors.fill: parent
+
     property var _kamikazeLocManager: QGroundControl.kamikazeLocManager
     property var _serverManager:      QGroundControl.serverManager
 
-    anchors.fill: parent
+    QGCPalette { id: qgcPal; colorGroupEnabled: page.enabled }
 
-    ScrollView {
-        anchors.fill: parent
+    SettingsGroupLayout {
+        Layout.fillWidth: true
+        heading: qsTr("Kamikaze Settings")
 
-        Column {
-            width: parent.width
-            spacing: 16
-            padding: 16
+        ColumnLayout {
+            Layout.fillWidth: true
+            spacing: ScreenTools.defaultFontPixelHeight
 
-            /* ---- Title ---- */
-            Label {
-                text: qsTr("Kamikaze Settings")
-                font.pixelSize: 20
-                font.bold: true
-                horizontalAlignment: Text.AlignHCenter
-                Layout.alignment: Qt.AlignHCenter
-            }
-
-            /* ---- Latitude ---- */
             RowLayout {
-                Layout.alignment: Qt.AlignHCenter
-                spacing: 12
+                Layout.fillWidth: true
+                spacing: ScreenTools.defaultFontPixelWidth
 
-                Label {
+                QGCLabel {
                     text: qsTr("Target latitude")
                     Layout.preferredWidth: 140
-                    horizontalAlignment: Text.AlignRight
+                    verticalAlignment: Text.AlignVCenter
                 }
 
-                TextField {
+                QGCTextField {
                     id: latField
-                    Layout.preferredWidth: 220
-                    placeholderText: _kamikazeLocManager.coordinate.latitude
+                    Layout.fillWidth: true
+                    text: (_kamikazeLocManager && _kamikazeLocManager.coordinate && !isNaN(_kamikazeLocManager.coordinate.latitude))
+                                     ? _kamikazeLocManager.coordinate.latitude.toFixed(6)
+                                     : ""
                 }
             }
 
-            /* ---- Longitude ---- */
             RowLayout {
-                Layout.alignment: Qt.AlignHCenter
-                spacing: 12
+                Layout.fillWidth: true
+                spacing: ScreenTools.defaultFontPixelWidth
 
-                Label {
+                QGCLabel {
                     text: qsTr("Target longitude")
                     Layout.preferredWidth: 140
-                    horizontalAlignment: Text.AlignRight
+                    verticalAlignment: Text.AlignVCenter
                 }
 
-                TextField {
+                QGCTextField {
                     id: lonField
-                    Layout.preferredWidth: 220
-                    placeholderText: _kamikazeLocManager.coordinate.longitude
+                    Layout.fillWidth: true
+                    text: (_kamikazeLocManager && _kamikazeLocManager.coordinate && !isNaN(_kamikazeLocManager.coordinate.longitude))
+                                     ? _kamikazeLocManager.coordinate.longitude.toFixed(6)
+                                     : ""
                 }
             }
 
-            /* ---- Actions ---- */
             RowLayout {
-                Layout.alignment: Qt.AlignHCenter
-                spacing: 16
+                Layout.fillWidth: true
+                spacing: ScreenTools.defaultFontPixelWidth
 
-                Button {
+                QGCButton {
                     text: qsTr("Get QR coords")
                     onClicked: _serverManager.getQRCoordinates()
                 }
 
-                Button {
+                Item { Layout.fillWidth: true }
+
+                QGCButton {
                     text: qsTr("Send to vehicle")
                     onClicked: {
                         const lat = parseFloat(latField.text)
                         const lon = parseFloat(lonField.text)
 
                         if (isNaN(lat) || isNaN(lon)) {
-                            console.warn("Invalid coordinates")
+                            console.warn("Invalid coordinates:", latField.text, lonField.text)
                             return
                         }
 
@@ -94,24 +93,30 @@ Item {
         }
     }
 
-    /* ---- Server → UI wiring ---- */
-
     Connections {
         target: _serverManager
 
         function onQrCoordinatesReceived(coord) {
-            latField.text = coord.latitude
-            lonField.text = coord.longitude
+            if (!coord) {
+                console.warn("Received empty QR coordinate")
+                return
+            }
 
-            _kamikazeLocManager.coordinate = coord //TODO? move to ServerManager::getQRCoordinates
+            try {
+                latField.text = coord.latitude.toFixed(6)
+                lonField.text = coord.longitude.toFixed(6)
+            } catch (e) {
+                latField.text = "" + coord.latitude
+                lonField.text = "" + coord.longitude
+            }
 
-            console.log("QR coords received:",
-                        coord.latitude,
-                        coord.longitude)
+            _kamikazeLocManager.coordinate = coord
+
+            console.log("QR coords received:", latField.text, lonField.text)
         }
 
-        function onErrorOccurred(err) {
-            console.warn("QR fetch failed:", err)
+        function onErrorOccurred(header, message) {
+            console.warn("Server error:", header, message)
         }
     }
 }

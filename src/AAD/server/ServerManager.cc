@@ -202,23 +202,38 @@ void ServerManager::getQRCoordinates()
     );
 }
 
-void ServerManager::checkConnection()
+void ServerManager::checkConnection(bool emitErr)
 {
     QNetworkRequest req{ QUrl(_baseUrl) };
     req.setAttribute(QNetworkRequest::RedirectionTargetAttribute, true);
 
-    QNetworkReply* reply = _nam->head(req);
+    QNetworkReply* reply = _nam->get(req);
 
-    connect(reply, &QNetworkReply::finished,
-            this, [this, reply]() {
+    connect(reply, &QNetworkReply::finished, this, [this, reply, emitErr]() {
+        const int httpStatus = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
+        const QByteArray data = reply->readAll();
 
-        // Only fail on real network errors
-        if (reply->error() == QNetworkReply::HostNotFoundError ||
-            reply->error() == QNetworkReply::ConnectionRefusedError ||
-            reply->error() == QNetworkReply::TimeoutError) {
-            emit connectionResult(false);
-        } else {
+        // If we received an HTTP status (200, 404, 500, etc.) the server answered
+        // at transport level and should be considered reachable.
+        if (httpStatus != 0) {
             emit connectionResult(true);
+        } else {
+            // No HTTP status — this is a transport/network-level failure.
+            if (reply->error() != QNetworkReply::NoError) {
+
+                if(emitErr) emit errorOccurred(
+                    tr("Network Error"),
+                    QString("GET %1\n%2\n%3")
+                        .arg(_baseUrl)
+                        .arg(reply->errorString())
+                        .arg(QString::fromUtf8(data))
+                );
+                emit connectionResult(false);
+            } else {
+                // Extremely unlikely: no httpStatus and no network error.
+                // Treat as unreachable to be conservative.
+                emit connectionResult(false);
+            }
         }
 
         reply->deleteLater();

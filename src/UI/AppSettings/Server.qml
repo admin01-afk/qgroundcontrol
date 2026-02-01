@@ -4,305 +4,345 @@ import QtQuick.Layouts 1.15
 import QtPositioning 5.15
 
 import QGroundControl
+import QGroundControl.Controls
+import QGroundControl.FactControls
 
-// TODO add clear button to fields
-
-Item {
+SettingsPage {
+    id: page
     anchors.fill: parent
 
     property var _serverManager: QGroundControl.serverManager
     property var latFields: []
     property var lonFields: []
 
+    QGCPalette { id: qgcPal; colorGroupEnabled: page.enabled }
 
-    ScrollView {
-        anchors.fill: parent
+    /* ---------------- Header / Server controls ---------------- */
+    SettingsGroupLayout {
+        Layout.fillWidth: true
 
-        ColumnLayout {
-            width: parent.availableWidth
-            spacing: 16
+        RowLayout {
+            Layout.fillWidth: true
+            spacing: ScreenTools.defaultFontPixelWidth
 
-            /* ================= Header ================= */
+            Item { Layout.fillWidth: true }
+
+            QGCLabel { id: serverTitleLabel
+                objectName: "serverTitleLabel"
+                text: qsTr("Server")
+                //font.pixelSize: 20
+                font.bold: true
+                horizontalAlignment: Text.AlignHCenter
+            }
+
+            Item { Layout.fillWidth: true }
+        }
+
+        RowLayout {
+            Layout.fillWidth: true
+            spacing: ScreenTools.defaultFontPixelWidth
+
+            // Base URL label + text field
             RowLayout {
-                Layout.fillWidth: true
-                spacing: 12
+                spacing: ScreenTools.defaultFontPixelWidth
+                Layout.preferredWidth: 250
 
-                Item { Layout.fillWidth: true }
-
-                Label {
-                    id: label
-                    text: qsTr("Server")
-                    font.pixelSize: 20
-                    font.bold: true
-                    color: "#FF0000"
-                    horizontalAlignment: Text.AlignHCenter
+                QGCLabel {
+                    text: qsTr("Base URL")
+                    verticalAlignment: Text.AlignVCenter
+                    Layout.preferredWidth: 100
                 }
-
-                Item { Layout.fillWidth: true }
-
-                Button {
-                    text: qsTr("Check Server")
-                    onClicked: _serverManager.checkConnection()
-                }
-
-                TextField {
+                QGCTextField {
                     id: baseUrlField
-                    Layout.preferredWidth: 260
                     placeholderText: _serverManager.baseUrl()
+                    Layout.fillWidth: true
                 }
+            }
 
-                Button {
-                    text: qsTr("Set")
-                    onClicked: {
-                        if (baseUrlField.text.length > 0) {
-                            _serverManager.setBaseUrl(baseUrlField.text)
-                            baseUrlField.text = ""
-                        }
-                    }
-                }
-
-                Button {
-                    text: _serverManager.serversimRunning
-                          ? qsTr("Stop Server sim")
-                          : qsTr("Run Server sim")
-
-                    onClicked: {
-                        _serverManager.serversimRunning
-                            ? _serverManager.stopServerSim()
-                            : _serverManager.startServerSim()
+            QGCButton {
+                text: qsTr("Set")
+                onClicked: {
+                    if (baseUrlField.text.length > 0) {
+                        _serverManager.setBaseUrl(baseUrlField.text)
+                        baseUrlField.text = ""
                     }
                 }
             }
 
-            /* ================= Login ================= */
+            QGCButton {
+                text: qsTr("Check Server")
+                onClicked: _serverManager.checkConnection()
+            }
+
+            QGCButton {
+                text: _serverManager.serversimRunning
+                      ? qsTr("Stop Server sim")
+                      : qsTr("Run Server sim")
+                onClicked: {
+                    _serverManager.serversimRunning
+                        ? _serverManager.stopServerSim()
+                        : _serverManager.startServerSim()
+                }
+            }
+        }
+    }
+
+    /* -------------------------- Login ------------------------- */
+    SettingsGroupLayout {
+        Layout.fillWidth: true
+        heading: qsTr("Login")
+
+        RowLayout {
+            Layout.fillWidth: true
+            spacing: ScreenTools.defaultFontPixelWidth
+
+            QGCLabel {
+                text: qsTr("Username")
+                verticalAlignment: Text.AlignVCenter
+                Layout.preferredWidth: 120
+            }
+            QGCTextField {
+                id: usrnameField
+                Layout.preferredWidth: 280
+            }
+        }
+
+        RowLayout {
+            Layout.fillWidth: true
+            spacing: ScreenTools.defaultFontPixelWidth
+
+            QGCLabel {
+                text: qsTr("Password")
+                verticalAlignment: Text.AlignVCenter
+                Layout.preferredWidth: 120
+            }
+            QGCTextField {
+                id: passwrdField
+                echoMode: TextInput.Password
+                Layout.preferredWidth: 280
+            }
+        }
+
+        RowLayout {
+            Layout.fillWidth: true
+            spacing: ScreenTools.defaultFontPixelWidth
+
+            QGCButton {
+                id: loginBtn
+                text: qsTr("Login")
+                onClicked: {
+                    _serverManager.login(
+                        usrnameField.text,
+                        passwrdField.text
+                    )
+                }
+            }
+
+            Item { Layout.fillWidth: true }
+
+            QGCLabel {
+                text: qsTr("Login status:")
+                verticalAlignment: Text.AlignVCenter
+            }
+            QGCLabel {
+                id: loginStatus
+                text: qsTr("Not logged")
+                verticalAlignment: Text.AlignVCenter
+            }
+        }
+    }
+
+    /* ---------------- Server Console ---------------- */
+    SettingsGroupLayout {
+        Layout.fillWidth: true
+        heading: qsTr("Server Console")
+
+        Rectangle {
+            Layout.fillWidth: true
+            Layout.preferredHeight: 240
+            radius: ScreenTools.defaultFontPixelWidth / 2
+            color: qgcPal.windowShadeDark
+            border.color: qgcPal.windowShade
+
             ColumnLayout {
-                Layout.alignment: Qt.AlignHCenter
-                spacing: 12
+                anchors.fill: parent
+                anchors.margins: ScreenTools.defaultFontPixelWidth
+                spacing: ScreenTools.defaultFontPixelHeight / 2
 
-                RowLayout {
-                    spacing: 12
-                    Label {
-                        text: qsTr("Username")
-                        Layout.preferredWidth: 120
-                        horizontalAlignment: Text.AlignRight
+                ListView {
+                    id: logView
+                    Layout.fillWidth: true
+                    Layout.fillHeight: true
+                    model: _serverManager.logs
+                    clip: true
+                    spacing: 2
+
+                    delegate: Text {
+                        text: modelData
+                        color: qgcPal.text
+                        font.family: "monospace"
+                        font.pixelSize: 12
+                        wrapMode: Text.WrapAnywhere
                     }
-                    TextField {
-                        id: usrnameField
-                        Layout.preferredWidth: 220
-                    }
+
+                    // keep end visible when new lines are appended
+                    onCountChanged: positionViewAtEnd()
                 }
 
                 RowLayout {
-                    spacing: 12
-                    Label {
-                        text: qsTr("Password")
-                        Layout.preferredWidth: 120
-                        horizontalAlignment: Text.AlignRight
-                    }
-                    TextField {
-                        id: passwrdField
-                        Layout.preferredWidth: 220
-                        echoMode: TextInput.Password
-                    }
-                }
+                    Layout.fillWidth: true
+                    Layout.alignment: Qt.AlignRight
 
-                Button {
-                    id: loginBtn
-                    text: qsTr("Login")
-                    Layout.preferredWidth: 120
-                    onClicked: {
-                        _serverManager.login(
-                            usrnameField.text,
-                            passwrdField.text
-                        )
-                    }
-                }
-            }
-
-            /* ================= Server Console ================= */
-            Rectangle {
-                Layout.fillWidth: true
-                Layout.preferredHeight: 260
-                radius: 6
-                color: "#1e1e1e"
-                border.color: "#404040"
-
-                ColumnLayout {
-                    anchors.fill: parent
-                    spacing: 6
-
-                    Label {
-                        text: qsTr("Server Console")
-                        color: "#cccccc"
-                        font.bold: true
-                    }
-
-                    ScrollView {
-                        Layout.fillWidth: true
-                        Layout.fillHeight: true
-                        clip: true
-
-                        ListView {
-                            id: logView
-                            model: _serverManager.logs
-                            spacing: 2
-                            clip: true
-
-                            delegate: Text {
-                                text: modelData
-                                color: "#dddddd"
-                                font.family: "monospace"
-                                font.pixelSize: 12
-                                wrapMode: Text.WrapAnywhere
-                            }
-
-                            onCountChanged: positionViewAtEnd()
-                        }
-                    }
-
-                    RowLayout {
-                        Layout.alignment: Qt.AlignRight
-                        Button {
-                            text: qsTr("Clear")
-                            onClicked: _serverManager.clearLogs()
-                        }
-                    }
-                }
-            }
-
-            /* ================= Telemetry ================= */
-            Button {
-                text: _serverManager.telemRunning
-                      ? qsTr("Stop telem loop")
-                      : qsTr("Start telem loop")
-
-                onClicked: _serverManager.toggleTelem()
-            }
-
-            /* ============= competition field ============== */
-            Rectangle {
-                Layout.fillWidth: true
-                Layout.preferredHeight: column.implicitHeight + 20
-                radius: 6
-                color: "#111111"
-                border.color: "#444"
-
-                ColumnLayout { id: column
-                    anchors.fill: parent
-                    anchors.margins: 10
-                    spacing: 8
-
-                    // Title
-                    Label {
-                        text: qsTr("Competition Field")
-                        font.pixelSize: 14
-                        font.bold: true
-                        color: "white"
-                        Layout.alignment: Qt.AlignHCenter
-                    }
-
-                    Rectangle {
-                        Layout.fillWidth: true
-                        height: 1
-                        color: "#333"
-                    }
-
-                    // Coordinates grid
-                    Repeater {
-                        model: 4
-
-                        delegate: RowLayout {
-                            spacing: 6
-                            Layout.fillWidth: true
-
-                            TextField {
-                                placeholderText: qsTr("Lat %1").arg(index + 1)
-                                Layout.fillWidth: true
-                                Component.onCompleted: latFields[index] = this
-                            }
-
-                            TextField {
-                                placeholderText: qsTr("Lon %1").arg(index + 1)
-                                Layout.fillWidth: true
-                                Component.onCompleted: lonFields[index] = this
-                            }
-                        }
-                    }
-
-                    Rectangle {
-                        Layout.fillWidth: true
-                        height: 1
-                        color: "#222"
-                    }
-
-                    // Buttons row
-                    RowLayout {
-                        Layout.fillWidth: true
-                        spacing: 8
-
-                        Button {
-                            text: qsTr("Display Field")
-                            Layout.fillWidth: true
-
-                            onClicked: {
-                                var coords = []
-
-                                for (var i = 0; i < latFields.length; i++) {
-                                    var lat = latFields[i].text
-                                    var lon = lonFields[i].text
-
-                                    if (lat !== "" && lon !== "") {
-                                        coords.push(QtPositioning.coordinate(
-                                            parseFloat(lat),
-                                            parseFloat(lon)))
-                                    }
-                                }
-                                _serverManager.setCompetitionField(coords)
-                            }
-                        }
-
-                        Button {
-                            text: qsTr("Load Test")
-                            Layout.preferredWidth: 110
-
-                            onClicked: {
-                                var testField = [
-                                    [-35.3638, 149.1628],
-                                    [-35.3638, 149.1678],
-                                    [-35.3618, 149.1678],
-                                    [-35.3618, 149.1628]
-                                ]
-
-                                for (var i = 0; i < testField.length; i++) {
-                                    latFields[i].text = testField[i][0].toFixed(6)
-                                    lonFields[i].text = testField[i][1].toFixed(6)
-                                }
-                                _serverManager.setCompetitionField(coords)
-                            }
-                        }
+                    Button {
+                        text: qsTr("Clear")
+                        onClicked: _serverManager.clearLogs()
                     }
                 }
             }
         }
     }
-    /* ================= Status Signals ================= */
+
+    /* ---------------- Telemetry control ---------------- */
+    SettingsGroupLayout {
+        Layout.fillWidth: true
+        heading: qsTr("Telemetry")
+
+        RowLayout {
+            Layout.fillWidth: true
+            spacing: ScreenTools.defaultFontPixelWidth
+
+            QGCButton {
+                text: _serverManager.telemRunning
+                      ? qsTr("Stop telem loop")
+                      : qsTr("Start telem loop")
+                onClicked: _serverManager.toggleTelem()
+            }
+
+            Item { Layout.fillWidth: true }
+
+            QGCLabel { text: qsTr("Telem running:") }
+            QGCLabel { text: _serverManager.telemRunning ? qsTr("Yes") : qsTr("No") }
+        }
+    }
+
+    /* ---------------- Competition Field ---------------- */
+    SettingsGroupLayout {
+        Layout.fillWidth: true
+        heading: qsTr("Competition Field")
+
+        ColumnLayout {
+            Layout.fillWidth: true
+            spacing: ScreenTools.defaultFontPixelHeight / 2
+
+            Repeater {
+                model: 4
+                delegate: RowLayout {
+                    Layout.fillWidth: true
+                    spacing: ScreenTools.defaultFontPixelWidth
+
+                    QGCLabel {
+                        text: qsTr("Lat %1").arg(index + 1)
+                        Layout.preferredWidth: 100
+                        verticalAlignment: Text.AlignVCenter
+                    }
+                    QGCTextField {
+                        id: latFieldDelegate
+                        Layout.preferredWidth: 200
+                        Component.onCompleted: latFields[index] = latFieldDelegate
+                    }
+
+                    QGCLabel {
+                        text: qsTr("Lon %1").arg(index + 1)
+                        Layout.preferredWidth: 100
+                        verticalAlignment: Text.AlignVCenter
+                    }
+                    QGCTextField {
+                        id: lonFieldDelegate
+                        Layout.preferredWidth: 200
+                        Component.onCompleted: lonFields[index] = lonFieldDelegate
+                    }
+                }
+            }
+
+            RowLayout {
+                Layout.fillWidth: true
+                spacing: ScreenTools.defaultFontPixelWidth
+
+                QGCButton {
+                    text: qsTr("Display Field")
+                    Layout.fillWidth: true
+                    onClicked: {
+                        var coords = []
+                        for (var i = 0; i < latFields.length; i++) {
+                            var lat = latFields[i].text
+                            var lon = lonFields[i].text
+                            if (lat !== "" && lon !== "") {
+                                coords.push(QtPositioning.coordinate(
+                                            parseFloat(lat),
+                                            parseFloat(lon)
+                                        ))
+                            }
+                        }
+                        _serverManager.setCompetitionField(coords)
+                    }
+                }
+
+                QGCButton {
+                    text: qsTr("Load Test")
+                    Layout.preferredWidth: 110
+                    onClicked: {
+                        var testField = [
+                            [-35.3638, 149.1628],
+                            [-35.3638, 149.1678],
+                            [-35.3618, 149.1678],
+                            [-35.3618, 149.1628]
+                        ]
+                        for (var i = 0; i < testField.length; i++) {
+                            latFields[i].text = testField[i][0].toFixed(6)
+                            lonFields[i].text = testField[i][1].toFixed(6)
+                        }
+
+                        var coords = []
+                        for (var i = 0; i < latFields.length; i++) {
+                            if (latFields[i].text !== "" && lonFields[i].text !== "")
+                                coords.push(QtPositioning.coordinate(
+                                    parseFloat(latFields[i].text),
+                                    parseFloat(lonFields[i].text)
+                                ))
+                        }
+                        _serverManager.setCompetitionField(coords)
+                    }
+                }
+            }
+        }
+    }
+
     Connections {
         target: _serverManager
 
         function onConnectionResult(ok) {
-            label.color = ok ? "#00FF00" : "#FF0000"
+            serverTitleLabel.color = ok ? "#00FF00" : "#FF0000"
         }
 
         function onLoginSucceeded() {
-            loginBtn.palette.buttonText = "#00FF00"
+            loginStatus.text = qsTr("Success")
+            loginStatus.color = "#00FF00"
         }
 
         function onLoginFailed() {
-            loginBtn.palette.buttonText = "#FF0000"
+            loginStatus.text = qsTr("Failed")
+            loginStatus.color = "#FF0000"
         }
     }
 
     Component.onCompleted: {
-        _serverManager.checkConnection()
+        // On page load, check server reachability so the Server label
+        // reflects the current connection state.
+        _serverManager.checkConnection(false)
+
+        // Login status is not checked On page load !
+        // Sending a login request on page load could have unintended
+        // consequences depending on server behavior (session handling).
+        // As a result, the Login status defaults to "Not logged".
     }
 }

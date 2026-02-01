@@ -141,115 +141,131 @@ QString QGCCorePlugin::showAdvancedUIMessage() const
 
 void QGCCorePlugin::factValueGridCreateDefaultSettings(FactValueGrid* factValueGrid)
 {
-#if defined(Q_OS_ANDROID) || defined(Q_OS_IOS)
-    FactValueGrid::FontSize defaultFontSize = FactValueGrid::DefaultFontSize;
-#else
-    FactValueGrid::FontSize defaultFontSize = FactValueGrid::MediumFontSize;
-#endif
+    // fontSize=3
+    factValueGrid->setFontSize(static_cast<FactValueGrid::FontSize>(3));
 
-    if (factValueGrid->specificVehicleForCard()) {
-        bool includeFWValues = factValueGrid->vehicleClass() == QGCMAVLink::VehicleClassFixedWing || factValueGrid->vehicleClass() == QGCMAVLink::VehicleClassVTOL || factValueGrid->vehicleClass() == QGCMAVLink::VehicleClassAirship;
+    // 4 columns
+    (void) factValueGrid->appendColumn(); // col 0
+    (void) factValueGrid->appendColumn(); // col 1
+    (void) factValueGrid->appendColumn(); // col 2
+    (void) factValueGrid->appendColumn(); // col 3
 
-        factValueGrid->setFontSize(defaultFontSize);
-        factValueGrid->appendColumn();
-        factValueGrid->appendColumn();
+    // grid has 3 rows. appendRow() creates a new row across all columns.
+    // Call it twice because the FactValueGrid usually starts with 1 row already after construction.
+    factValueGrid->appendRow(); // now at least 2
+    factValueGrid->appendRow(); // now at least 3
 
+    // Helper to access a specific cell
+    auto columnModel = [&](int colIndex) -> QmlObjectListModel* {
+        return factValueGrid->columns()->value<QmlObjectListModel*>(colIndex);
+    };
+
+    // --- Column 1 (index 0) ---
+    {
+        QmlObjectListModel* col = columnModel(0);
         int rowIndex = 0;
-        int colIndex = 0;
 
-        // first cell
-        QmlObjectListModel* column = factValueGrid->columns()->value<QmlObjectListModel*>(colIndex++);
-        InstrumentValueData* value = column->value<InstrumentValueData*>(rowIndex);
-        value->setFact("Vehicle", "AltitudeRelative");
-        value->setIcon("arrow-thick-up.svg");
-        value->setText(value->fact()->shortDescription());
-        value->setShowUnits(true);
+        InstrumentValueData* v = col->value<InstrumentValueData*>(rowIndex++);
+        v->setFact(QStringLiteral("Vehicle"), QStringLiteral("AirSpeed"));
+        v->setIcon(QStringLiteral(""));
+        v->setRangeType(InstrumentValueData::NoRangeInfo);
+        v->setShowUnits(true);
+        v->setText(QStringLiteral("Air Speed"));
 
-        // second cell
-        column = factValueGrid->columns()->value<QmlObjectListModel*>(colIndex++);
-        value = column->value<InstrumentValueData*>(rowIndex);
-        if (includeFWValues) {
-            value->setFact("Vehicle", "AirSpeed");
-            value->setText("AirSpd");
-            value->setShowUnits(true);
-        } else {
-            value->setFact("Vehicle", "GroundSpeed");
-            value->setIcon("arrow-simple-right.svg");
-            value->setText(value->fact()->shortDescription());
-            value->setShowUnits(true);
-        }
-    } else {
-        const bool includeFWValues = ((factValueGrid->vehicleClass() == QGCMAVLink::VehicleClassFixedWing) || (factValueGrid->vehicleClass() == QGCMAVLink::VehicleClassVTOL) || (factValueGrid->vehicleClass() == QGCMAVLink::VehicleClassAirship));
+        v = col->value<InstrumentValueData*>(rowIndex++);
+        v->setFact(QStringLiteral("Gps"), QStringLiteral("Lat"));
+        v->setIcon(QStringLiteral(""));
+        v->setRangeType(InstrumentValueData::NoRangeInfo);
+        v->setShowUnits(true);
+        v->setText(QStringLiteral("Latitude"));
 
-        factValueGrid->setFontSize(defaultFontSize);
+        v = col->value<InstrumentValueData*>(rowIndex++);
+        v->setFact(QStringLiteral("Vehicle"), QStringLiteral("Pitch"));
+        v->setIcon(QStringLiteral(""));
+        v->setRangeType(InstrumentValueData::NoRangeInfo);
+        v->setShowUnits(true);
+        v->setText(QStringLiteral("Pitch"));
+    }
 
-        (void) factValueGrid->appendColumn();
-        (void) factValueGrid->appendColumn();
-        (void) factValueGrid->appendColumn();
-        if (includeFWValues) {
-            (void) factValueGrid->appendColumn();
-        }
-        factValueGrid->appendRow();
-
+    // --- Column 2 (index 1) ---
+    {
+        QmlObjectListModel* col = columnModel(1);
         int rowIndex = 0;
-        QmlObjectListModel *column = factValueGrid->columns()->value<QmlObjectListModel*>(0);
 
-        InstrumentValueData *value = column->value<InstrumentValueData*>(rowIndex++);
-        value->setFact(QStringLiteral("Vehicle"), QStringLiteral("AltitudeRelative"));
-        value->setIcon(QStringLiteral("arrow-thick-up.svg"));
-        value->setText(value->fact()->shortDescription());
-        value->setShowUnits(true);
+        InstrumentValueData* v = col->value<InstrumentValueData*>(rowIndex++);
+        v->setFact(QStringLiteral("Vehicle"), QStringLiteral("GroundSpeed"));
+        v->setIcon(QStringLiteral(""));
+        v->setRangeType(InstrumentValueData::NoRangeInfo);
+        v->setShowUnits(true);
+        v->setText(QStringLiteral("Ground Speed"));
 
-        value = column->value<InstrumentValueData*>(rowIndex++);
-        value->setFact(QStringLiteral("Vehicle"), QStringLiteral("DistanceToHome"));
-        value->setIcon(QStringLiteral("bookmark copy 3.svg"));
-        value->setText(value->fact()->shortDescription());
-        value->setShowUnits(true);
+        v = col->value<InstrumentValueData*>(rowIndex++);
+        v->setFact(QStringLiteral("Gps"), QStringLiteral("Lon"));
+        v->setIcon(QStringLiteral(""));
+        v->setRangeType(InstrumentValueData::NoRangeInfo);
+        v->setShowUnits(true);
+        v->setText(QStringLiteral("Longitude"));
 
-        rowIndex = 0;
-        column = factValueGrid->columns()->value<QmlObjectListModel*>(1);
+        v = col->value<InstrumentValueData*>(rowIndex++);
+        v->setFact(QStringLiteral("Vehicle"), QStringLiteral("Roll"));
+        v->setIcon(QStringLiteral(""));
+        v->setRangeType(InstrumentValueData::NoRangeInfo);
+        v->setShowUnits(true);
+        v->setText(QStringLiteral("Roll"));
+    }
 
-        value = column->value<InstrumentValueData*>(rowIndex++);
-        value->setFact(QStringLiteral("Vehicle"), QStringLiteral("ClimbRate"));
-        value->setIcon(QStringLiteral("arrow-simple-up.svg"));
-        value->setText(value->fact()->shortDescription());
-        value->setShowUnits(true);
+    // --- Column 3 (index 2) ---
+    {
+        QmlObjectListModel* col = columnModel(2);
+        int rowIndex = 0;
 
-        value = column->value<InstrumentValueData*>(rowIndex++);
-        value->setFact(QStringLiteral("Vehicle"), QStringLiteral("GroundSpeed"));
-        value->setIcon(QStringLiteral("arrow-simple-right.svg"));
-        value->setText(value->fact()->shortDescription());
-        value->setShowUnits(true);
+        InstrumentValueData* v = col->value<InstrumentValueData*>(rowIndex++);
+        v->setFact(QStringLiteral("Vehicle"), QStringLiteral("AltitudeRelative"));
+        v->setIcon(QStringLiteral(""));
+        v->setRangeType(InstrumentValueData::NoRangeInfo);
+        v->setShowUnits(true);
+        v->setText(v->fact() ? v->fact()->shortDescription() : QStringLiteral("Alt (Rel)"));
 
-        if (includeFWValues) {
-            rowIndex = 0;
-            column = factValueGrid->columns()->value<QmlObjectListModel*>(2);
+        v = col->value<InstrumentValueData*>(rowIndex++);
+        v->setFact(QStringLiteral("Vehicle"), QStringLiteral("ClimbRate"));
+        v->setIcon(QStringLiteral(""));
+        v->setRangeType(InstrumentValueData::NoRangeInfo);
+        v->setShowUnits(true);
+        v->setText(QStringLiteral("Climb Rate"));
 
-            value = column->value<InstrumentValueData*>(rowIndex++);
-            value->setFact(QStringLiteral("Vehicle"), QStringLiteral("AirSpeed"));
-            value->setText(QStringLiteral("AirSpd"));
-            value->setShowUnits(true);
+        v = col->value<InstrumentValueData*>(rowIndex++);
+        v->setFact(QStringLiteral("Vehicle"), QStringLiteral("PitchRate"));
+        v->setIcon(QStringLiteral(""));
+        v->setRangeType(InstrumentValueData::NoRangeInfo);
+        v->setShowUnits(true);
+        v->setText(QStringLiteral("Pitch Rate"));
+    }
 
-            value = column->value<InstrumentValueData*>(rowIndex++);
-            value->setFact(QStringLiteral("Vehicle"), QStringLiteral("ThrottlePct"));
-            value->setText(QStringLiteral("Thr"));
-            value->setShowUnits(true);
-        }
+    // --- Column 4 (index 3) ---
+    {
+        QmlObjectListModel* col = columnModel(3);
+        int rowIndex = 0;
 
-        rowIndex = 0;
-        column = factValueGrid->columns()->value<QmlObjectListModel*>(includeFWValues ? 3 : 2);
+        InstrumentValueData* v = col->value<InstrumentValueData*>(rowIndex++);
+        v->setFact(QStringLiteral("Vehicle"), QStringLiteral("ThrottlePct"));
+        v->setIcon(QStringLiteral(""));
+        v->setRangeType(InstrumentValueData::NoRangeInfo);
+        v->setShowUnits(true);
+        v->setText(QStringLiteral("Thr"));
 
-        value = column->value<InstrumentValueData*>(rowIndex++);
-        value->setFact(QStringLiteral("Vehicle"), QStringLiteral("FlightTime"));
-        value->setIcon(QStringLiteral("timer.svg"));
-        value->setText(value->fact()->shortDescription());
-        value->setShowUnits(false);
+        v = col->value<InstrumentValueData*>(rowIndex++);
+        v->setFact(QStringLiteral("Vehicle"), QStringLiteral("FlightTime"));
+        v->setIcon(QStringLiteral(""));
+        v->setRangeType(InstrumentValueData::NoRangeInfo);
+        v->setShowUnits(true);
+        v->setText(QStringLiteral("Flight Time"));
 
-        value = column->value<InstrumentValueData*>(rowIndex++);
-        value->setFact(QStringLiteral("Vehicle"), QStringLiteral("FlightDistance"));
-        value->setIcon(QStringLiteral("travel-walk.svg"));
-        value->setText(value->fact()->shortDescription());
-        value->setShowUnits(true);
+        v = col->value<InstrumentValueData*>(rowIndex++);
+        v->setFact(QStringLiteral("Vehicle"), QStringLiteral("RollRate"));
+        v->setIcon(QStringLiteral(""));
+        v->setRangeType(InstrumentValueData::NoRangeInfo);
+        v->setShowUnits(true);
+        v->setText(QStringLiteral("Roll Rate"));
     }
 }
 

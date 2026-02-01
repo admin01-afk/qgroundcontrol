@@ -97,13 +97,8 @@ SettingsPage {
                 return
             }
 
-            try {
-                latField.text = coord.latitude.toFixed(6)
-                lonField.text = coord.longitude.toFixed(6)
-            } catch (e) {
-                latField.text = "" + coord.latitude
-                lonField.text = "" + coord.longitude
-            }
+            latField.text = "" + coord.latitude
+            lonField.text = "" + coord.longitude
 
             _kamikazeLocManager.coordinate = coord
 

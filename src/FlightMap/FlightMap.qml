@@ -236,6 +236,7 @@ Map {
         z: 10000
         width: 100
         primary: true
+        visible: QGroundControl.settingsManager.appSettings.operationMode === AppSettings.SAVASAN
 
         anchors {
             bottom: parent.bottom

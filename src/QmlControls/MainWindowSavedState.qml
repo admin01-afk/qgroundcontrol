@@ -34,7 +34,7 @@ Item {
         } else if (ScreenTools.isMobile) {
             window.showFullScreen();
         } else if (QGroundControl.corePlugin.options.enableSaveMainWindowPosition) {
-            window.minimumWidth = Math.min(ScreenTools.defaultFontPixelWidth * 100, Screen.width)
+            window.minimumWidth = Math.min(ScreenTools.defaultFontPixelWidth * 130, Screen.width)
             window.minimumHeight = Math.min(ScreenTools.defaultFontPixelWidth * 50, Screen.height)
             if (s.width && s.height) {
                 window.x = s.x;

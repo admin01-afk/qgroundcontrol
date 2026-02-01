@@ -43,7 +43,8 @@ Rectangle {
             rightPanel.source = "qrc:/qml/QGroundControl/AppSettings/RemoteIDSettings.qml"
             globals.commingFromRIDIndicator = false
         } else {
-            rightPanel.source =  "qrc:/qml/QGroundControl/AppSettings/GeneralSettings.qml"
+            rightPanel.source = "qrc:/qml/QGroundControl/AppSettings/Server.qml"
+                                //"qrc:/qml/QGroundControl/AppSettings/GeneralSettings.qml"
         }
     }
 

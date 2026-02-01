@@ -4,17 +4,24 @@ import QGroundControl
 import QGroundControl.Controls
 
 ListModel {
+    // Note: update the first element as the default in
+    //              src/QmlControls/AppSettings.qml
+    //              Component.onCompleted: { rightPanel.source = "qrc:/qml/QGroundControl/AppSettings/...
     ListElement {
         name: qsTr("Server")
         url: "qrc:/qml/QGroundControl/AppSettings/Server.qml"
-        iconUrl: "qrc:/res/QGCLogoWhite.svg"
+        iconUrl: "qrc:/InstrumentValueIcons/servers.svg"
         pageVisible: function() { return true }
     }
     ListElement {
         name: qsTr("Kamikaze")
         url: "qrc:/qml/QGroundControl/AppSettings/KamikazeSettings.qml"
-        iconUrl: "qrc:/res/QGCLogoWhite.svg"
+        iconUrl: "qrc:/InstrumentValueIcons/target.svg"
         pageVisible: function() { return QGroundControl.settingsManager.appSettings.operationMode === AppSettings.SAVASAN}
+    }
+
+    ListElement {
+        name: "Divider"
     }
 
     ListElement {
@@ -49,7 +56,7 @@ ListModel {
         name: qsTr("Video")
         url: "qrc:/qml/QGroundControl/AppSettings/VideoSettings.qml"
         iconUrl: "qrc:/InstrumentValueIcons/camera.svg"
-        pageVisible: function() { return QGroundControl.settingsManager.videoSettings.visible }
+        pageVisible: function() { return false} //return QGroundControl.settingsManager.videoSettings.visible }
     }
 
     ListElement {
@@ -60,7 +67,7 @@ ListModel {
         name: qsTr("ADSB Server")
         url: "qrc:/qml/QGroundControl/AppSettings/ADSBServerSettings.qml"
         iconUrl: "qrc:/InstrumentValueIcons/airplane.svg"
-        pageVisible: function() { return true }
+        pageVisible: function() { return false }
     }
 
     ListElement {
@@ -88,9 +95,9 @@ ListModel {
         name: qsTr("NTRIP/RTK")
         url: "qrc:/qml/QGroundControl/AppSettings/NTRIPSettings.qml"
         iconUrl: "qrc:/InstrumentValueIcons/globe.svg"
-        pageVisible: function() {
-            return QGroundControl.settingsManager &&
-                   QGroundControl.settingsManager.ntripSettings !== undefined
+        pageVisible: function() { return false
+            //return QGroundControl.settingsManager &&
+            //       QGroundControl.settingsManager.ntripSettings !== undefined
         }
     }
 
@@ -110,7 +117,7 @@ ListModel {
         name: qsTr("Remote ID")
         url: "qrc:/qml/QGroundControl/AppSettings/RemoteIDSettings.qml"
         iconUrl: "qrc:/qmlimages/RidIconManNoID.svg"
-        pageVisible: function() { return true }
+        pageVisible: function() { return false }
     }
 
     ListElement {
@@ -128,7 +135,7 @@ ListModel {
         name: qsTr("Help")
         url: "qrc:/qml/QGroundControl/AppSettings/HelpSettings.qml"
         iconUrl: "qrc:/InstrumentValueIcons/question.svg"
-        pageVisible: function() { return true }
+        pageVisible: function() { return false }
     }
 
     ListElement {

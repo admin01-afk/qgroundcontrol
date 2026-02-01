@@ -58,6 +58,18 @@ Control {
 
     property var qgcPal: QGroundControl.globalPalette
 
+    onVisibleChanged: _showValueTextField()
+    function _showValueTextField() {
+        sliderValueTextField.visible = true
+
+        Qt.callLater(function () {
+            sliderValueTextField.forceActiveFocus()
+            if (sliderValueTextField.selectAll) {
+                sliderValueTextField.selectAll()
+            }
+        })
+    }
+
     function setValue(value) {
         value = _clampedSliderValue(value)
         if (value !== control.value) {
@@ -301,6 +313,7 @@ Control {
                 unitsLabel:         unitsString
                 visible:            false
                 numericValuesOnly:  true
+                text:               "0"
 
                 onEditingFinished: {
                     visible = false

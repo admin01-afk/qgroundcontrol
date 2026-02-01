@@ -64,6 +64,19 @@ Item {
 
     property var _qgcPal: QGroundControl.globalPalette
 
+    // directly give focus to sliderValueTextField, without needing to click Value indicator
+    onVisibleChanged: _showValueTextField()
+    function _showValueTextField() {
+        sliderValueTextField.visible = true
+
+        Qt.callLater(function () {
+            sliderValueTextField.forceActiveFocus()
+            if (sliderValueTextField.selectAll) {
+                sliderValueTextField.selectAll()
+            }
+        })
+    }
+
     function setCurrentValue(currentValue, animate = true) {
         // Position the slider such that the indicator is pointing to the current value
         var contentY = (_firstPixelValue - currentValue) / _sliderValuePerPixel - _indicatorCenterPos
@@ -277,7 +290,9 @@ Item {
             unitsLabel:         valueLabel.unitsString
             visible:            false
             numericValuesOnly:  true
-
+            text:               "0"   // workaround to give focus back to slider
+                                      // i couldn't figure out how
+                                      // so causing ValueChanged works
             onEditingFinished: {
                 visible = false
                 focus = false

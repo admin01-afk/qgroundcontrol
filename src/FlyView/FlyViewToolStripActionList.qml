@@ -55,33 +55,7 @@ ToolStripActionList {
             text: _additionalActions.model[2].title
             onTriggered: {
                 _guidedController.closeAll()
-                // Load dialog component from qrc and create instance
-                var comp = Qt.createComponent("qrc:/qml/QGroundControl/Controls/QGCNumberEntryDialog.qml")
-                if (comp.status === Component.Ready) {
-                    var dlg = comp.createObject(_root, { units: QGroundControl.unitsConversion.appSettingsVerticalDistanceUnitsString })
-                    if (!dlg) return
-                    dlg.minimum = _guidedController._flyViewSettings ? _guidedController._flyViewSettings.guidedMinimumAltitude.value : -1000
-                    dlg.maximum = _guidedController._flyViewSettings ? _guidedController._flyViewSettings.guidedMaximumAltitude.value : 10000
-                    dlg.open()
-                    dlg.acceptedValue.connect(function(v) {
-                        _guidedController.executeAction(_guidedController.actionChangeAlt, undefined, v)
-                    })
-                } else {
-                    comp.statusChanged.connect(function() {
-                        if (comp.status === Component.Ready) {
-                            var dlg2 = comp.createObject(_root, { units: QGroundControl.unitsConversion.appSettingsVerticalDistanceUnitsString })
-                            if (!dlg2) return
-                            dlg2.minimum = _guidedController._flyViewSettings ? _guidedController._flyViewSettings.guidedMinimumAltitude.value : -1000
-                            dlg2.maximum = _guidedController._flyViewSettings ? _guidedController._flyViewSettings.guidedMaximumAltitude.value : 10000
-                            dlg2.open()
-                            dlg2.acceptedValue.connect(function(v) {
-                                _guidedController.executeAction(_guidedController.actionChangeAlt, undefined, v)
-                            })
-                        } else if (comp.status === Component.Error) {
-                            console.warn("Failed to load QGCNumberEntryDialog:", comp.errorString())
-                        }
-                    })
-                }
+                _guidedController.confirmAction(_additionalActions.model[2].action)
             }
         },
         ToolStripAction {

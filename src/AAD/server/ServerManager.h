@@ -56,6 +56,7 @@ public:
     QVariantList competitionField() const {return _competitionField;}
     Q_INVOKABLE void getHSS();
     QVariantList hssList() const { return _hssList; }
+    Q_INVOKABLE void reportError(const QString& header, const QString& error){emit errorOccurred(header, error);};
 
 signals:
     void serversimRunningChanged();

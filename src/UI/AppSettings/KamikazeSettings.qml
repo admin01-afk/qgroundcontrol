@@ -79,11 +79,6 @@ SettingsPage {
                         const lat = parseFloat(latField.text)
                         const lon = parseFloat(lonField.text)
 
-                        if (isNaN(lat) || isNaN(lon)) {
-                            console.warn("Invalid coordinates:", latField.text, lonField.text)
-                            return
-                        }
-
                         _kamikazeLocManager.setCoordinate(
                             QtPositioning.coordinate(lat, lon)
                         )

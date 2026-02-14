@@ -75,5 +75,4 @@ void TelemPlaneDataModel::removeAircraftNotIn(const QSet<int>& activeIds)
     beginResetModel();
     _aircraft = std::move(newList);
     endResetModel();
-    qDebug() << "reset";
 }

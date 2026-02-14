@@ -284,7 +284,7 @@ void ServerManager::startServerSim()
     const QString script =
         QDir::homePath() + "/qgroundcontrol/src/AAD/server_sim/server.py";
 
-    _serversimProcess->start("python3", { script });
+    _serversimProcess->start("python3", { script,"-gui"});
 
     if (!_serversimProcess->waitForStarted(1500)) {
         appendLog(QString("Failed to start server sim: %1").arg(script));

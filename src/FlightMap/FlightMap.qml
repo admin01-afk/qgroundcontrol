@@ -35,6 +35,7 @@ Map {
 
     property real popupX: 0
     property real popupY: 0
+    property int lastHoveredPlaneTeamId: -1  // keep alt/speed visible for last hovered plane
 
     // KEYBOARD map controls
     focus: true
@@ -56,10 +57,10 @@ Map {
             const panAmount = basePan * zoomFactor
 
             let dx = 0, dy = 0
-            if (wPressed) dy += 1
-            if (sPressed) dy -= 1
-            if (aPressed) dx -= 1
-            if (dPressed) dx += 1
+            if (_map.wPressed) dy += 1
+            if (_map.sPressed) dy -= 1
+            if (_map.aPressed) dx -= 1
+            if (_map.dPressed) dx += 1
 
             const length = Math.sqrt(dx*dx + dy*dy)
             if (length > 0) {
@@ -67,8 +68,8 @@ Map {
                 _map.center.longitude += (dx / length) * panAmount
             }
 
-            if (qPressed) _map.zoomLevel = Math.max(_map.zoomLevel - 0.1, 2) // Minimum zoom level
-            if (ePressed) _map.zoomLevel = Math.min(_map.zoomLevel + 0.1, 18) // Maximum zoom level
+            if (_map.qPressed) _map.zoomLevel = Math.max(_map.zoomLevel - 0.1, 2) // Minimum zoom level
+            if (_map.ePressed) _map.zoomLevel = Math.min(_map.zoomLevel + 0.1, 18) // Maximum zoom level
 
         }
     }
@@ -122,6 +123,7 @@ Map {
                 height: planeIcon.height + teamLabel.height + 8
                 hoverEnabled: true
                 acceptedButtons: Qt.NoButton
+                onContainsMouseChanged: if (containsMouse) _map.lastHoveredPlaneTeamId = model.teamId
 
                 Image {
                     id: planeIcon
@@ -159,8 +161,8 @@ Map {
                     styleColor: "black"
                 }
                 Text {
-                    opacity: parent.containsMouse ? 1 : 0
                     id: altLabel
+                    opacity: (parent.containsMouse || model.teamId === _map.lastHoveredPlaneTeamId) ? 1 : 0
                     text: "alt: " + model.alt
                     anchors.top: teamLabel.bottom
                     anchors.topMargin: 2
@@ -171,8 +173,8 @@ Map {
                     styleColor: "black"
                 }
                 Text {
-                    opacity: parent.containsMouse ? 1 : 0
                     id: speedLabel
+                    opacity: (parent.containsMouse || model.teamId === _map.lastHoveredPlaneTeamId) ? 1 : 0
                     text: "speed: " + Number(model.speed).toFixed(2)
                     anchors.top: altLabel.bottom
                     anchors.topMargin: 2
@@ -387,6 +389,7 @@ Map {
             isPressed = true
             pressAndHold = false
             pressAndHoldTimer.start()
+            _map.lastHoveredPlaneTeamId = -1
         }
 
         onGestureStarted: (gesture) => {

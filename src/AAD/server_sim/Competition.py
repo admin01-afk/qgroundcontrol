@@ -4,14 +4,18 @@ import math
 import time
 
 class Competition():
-    def __init__(self):
+    def __init__(self, mode="fake"):
+        self.mode = mode
         self.contestants = []
+        self.last_state = {
+            "konum_bilgileri": []
+        }
 
         self.users = {
-    "estuanatolia": {"password": "2Eqtm3v3ZJ", "team_number": 31},
-    "team1": {"password": "team123", "team_number": 2},
-    "1": {"password": "1", "team_number": 3}
-}
+            "estuanatolia": {"password": "2Eqtm3v3ZJ", "team_number": 31},
+            "team1": {"password": "team123", "team_number": 2},
+            "1": {"password": "1", "team_number": 3}
+        }
 
     def circle_position(self, center_lat, center_lon, radius_m, angular_speed, phase=0.0):
         """
@@ -38,7 +42,7 @@ class Competition():
                 return index
         return -1
 
-    def update_contestant(self, id, json_data):
+    def update_contestant(self, json_data):
         id = json_data["takim_numarasi"]
         contestant_index = self.find_contestant(id)
         if contestant_index < 0:
@@ -102,11 +106,13 @@ class Competition():
             }
         ]
 
-        response_json["konum_bilgileri"].extend(enemy_planes)
+        if self.mode == "fake":
+            response_json["konum_bilgileri"].extend(enemy_planes)
 
         for contestant in self.contestants:
             response_json["konum_bilgileri"].append(contestant.get_info())
 
+        self.last_state = response_json
         return response_json
 
     def get_current_time(self):
@@ -139,3 +145,8 @@ class Competition():
         else:
             # Return an error response if credentials are wrong
             return None
+
+    def toggle_mode(self):
+        self.mode = "live" if self.mode == "fake" else "fake"
+        self.contestants = []
+        self.last_state = {"konum_bilgileri": []}

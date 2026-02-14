@@ -36,6 +36,10 @@ public:
         double alt = 0.0,
         double speed = 0.0
     );
+    void removeAircraftNotIn(const QSet<int>& activeIds);
+
+signals:
+    void aircraftListChanged();
 
 private:
     QList<AircraftData> _aircraft;

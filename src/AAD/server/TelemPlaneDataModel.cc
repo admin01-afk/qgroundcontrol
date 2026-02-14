@@ -49,3 +49,31 @@ void TelemPlaneDataModel::updateAircraft(int teamId, const QGeoCoordinate& coord
     _aircraft.append({ teamId, coord, heading, alt, speed });
     endInsertRows();
 }
+
+void TelemPlaneDataModel::removeAircraftNotIn(const QSet<int>& activeIds)
+{
+    // Build new list containing only active aircraft
+    QList<AircraftData> newList;
+    newList.reserve(_aircraft.size());
+
+    for (const AircraftData& a : _aircraft) {
+        if (activeIds.contains(a.teamId)) {
+            newList.append(a);
+        }
+    }
+
+    // If nothing changed, do nothing
+    if (newList.size() == _aircraft.size()) {
+        bool same = true;
+        for (int i = 0; i < newList.size(); ++i) {
+            if (newList[i].teamId != _aircraft[i].teamId) { same = false; break; }
+        }
+        if (same) return;
+    }
+
+    // Replace model using model reset (safe, simple)
+    beginResetModel();
+    _aircraft = std::move(newList);
+    endResetModel();
+    qDebug() << "reset";
+}

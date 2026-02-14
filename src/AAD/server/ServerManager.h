@@ -10,6 +10,7 @@
 #include <QStringList>
 #include <QGeoCoordinate>
 #include <QVariantList>
+#include <QElapsedTimer>
 
 #include "TelemPlaneDataModel.h"
 
@@ -89,6 +90,7 @@ private:
 
     QProcess* _serversimProcess{nullptr};
     QTimer*   _telemTimer{nullptr};
+    QElapsedTimer _telemElapsedTimer;
 
     QStringList _logs;
     QVariantList _competitionField;

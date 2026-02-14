@@ -173,7 +173,7 @@ Map {
                 Text {
                     opacity: parent.containsMouse ? 1 : 0
                     id: speedLabel
-                    text: "speed: " + model.speed
+                    text: "speed: " + Number(model.speed).toFixed(2)
                     anchors.top: altLabel.bottom
                     anchors.topMargin: 2
                     anchors.horizontalCenter: parent.horizontalCenter
@@ -241,7 +241,7 @@ Map {
         anchors {
             bottom: parent.bottom
             left: parent.left
-            margins: ScreenTools.defaultMargin
+            margins: 10
         }
 
         onClicked: {

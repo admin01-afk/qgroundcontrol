@@ -2,6 +2,9 @@ from flask import Flask, request, jsonify, session
 import requests
 import json
 from Competition import Competition
+import argparse
+import time
+import threading
 
 app = Flask(__name__)
 app.secret_key = 'your_secret_key'  # Required for Flask sessions
@@ -28,8 +31,7 @@ def login():
 @app.route('/api/telemetri_gonder', methods=['POST'])
 def update_data():
     json_data = request.get_json()
-    competition.update_contestant(
-        request.get_json('takim_numarasi'), json_data)
+    competition.update_contestant(json_data)
     response = competition.response_json()
     # Pretty-print the incoming JSON data
     json_str = json.dumps(json_data, indent=4, ensure_ascii=False)  # Ensure readable format
@@ -78,7 +80,43 @@ def get_qr_data():
     print(f"qr data: {json_data}")
     return jsonify({"qr data": json_data}), 200
 
+def fake_plane_tick():
+    while True:
+        if competition.mode == "fake":
+            # Force generation of fake planes
+            competition.response_json()
+        time.sleep(0.5)
 
 if __name__ == '__main__':
-    competition = Competition()
-    app.run(debug=True, use_reloader=False, host='127.0.0.1', port=5000)
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "-gui",
+        action="store_true",
+        help="Enable GUI mode"
+    )
+    parser.add_argument(
+        "-mode",
+        choices=["fake", "live"],
+        default="fake",
+        help="Contestant logic mode"
+    )
+
+    args = parser.parse_args()
+    competition = Competition(mode=args.mode)
+    tick_thread = threading.Thread(target=fake_plane_tick, daemon=True)
+    tick_thread.start()
+
+    if args.gui:
+        from gui import ServerGUI
+
+        gui = ServerGUI(competition)
+        threading.Thread(target=app.run, kwargs={
+            "debug": False,
+            "use_reloader": False,
+            "host": "127.0.0.1",
+            "port": 5000
+        }, daemon=True).start()
+
+        gui.run()
+    else:
+        app.run(debug=True, use_reloader=False, host='127.0.0.1', port=5000)

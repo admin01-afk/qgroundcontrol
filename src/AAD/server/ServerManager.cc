@@ -13,6 +13,9 @@
 #include <QDebug>
 #include <QDir>
 #include <QApplicationStatic>
+#include "Vehicle/MultiVehicleManager.h"
+#include "Vehicle/Vehicle.h"
+#include "FactSystem/Fact.h"
 
 #include <functional>
 
@@ -37,9 +40,9 @@ ServerManager::ServerManager(QObject* parent)
     // Network manager
     _nam = new QNetworkAccessManager(this);
 
-    // Telemetry loop (2 Hz)
+    // Telemetry loop
     _telemTimer = new QTimer(this);
-    _telemTimer->setInterval(500);
+    _telemTimer->setInterval(600);
     connect(_telemTimer, &QTimer::timeout,
             this, &ServerManager::_telemLoop);
 
@@ -308,17 +311,104 @@ bool ServerManager::serversimRunning() const
 
 /* ============================================================================
  * Telemetry Loop
-  TODO verify telem hz -> warn, clear last telem plane data from server(remove icons in map)
  * ========================================================================== */
 
 void ServerManager::_telemLoop()
 {
-    appendLog("[TELEM] tick");
+    // Check loop Hz at least 1 and less than 2
+    if (!_telemElapsedTimer.isValid()){
+        _telemElapsedTimer.start();
+    }else{
+        qint64 dtMs = _telemElapsedTimer.restart();
+        constexpr int EXPECTED_HZ = 1;      // server sim = 1 Hz
+        constexpr int MAX_DT_MS  = 1000;    // 1Hz
+        constexpr int MIN_DT_MS  = 500;     // 2Hz
 
-    QJsonObject body{
-        {"takim_numarasi", 3}
-        //TODO
-    };
+        if (dtMs > MAX_DT_MS) { // < 1Hz
+            appendLog(QString(
+                "[WARN] Telemetry slow: %1 ms (%2 Hz expected)"
+            ).arg(dtMs).arg(EXPECTED_HZ));
+        }
+        if (dtMs < MIN_DT_MS) { // > 2Hz
+            appendLog(QString(
+                "[WARN] Telemetry fast: %1 ms (%2 Hz expected)"
+            ).arg(dtMs).arg(EXPECTED_HZ));
+        }
+    }
+
+    MultiVehicleManager* manager = MultiVehicleManager::instance();
+    if (!manager) {qDebug() << "[TELEM] no Vehicle"; return;}
+
+    Vehicle* vehicle = manager->activeVehicle();
+    if (!vehicle) {qDebug() << "[TELEM] no Vehicle"; return;}
+
+    QJsonObject body;
+    body["takim_numarasi"] = 3;
+    body["iha_enlem"]  = vehicle->latitude();
+    body["iha_boylam"] = vehicle->longitude();
+
+    if (vehicle->altitudeRelative()) {
+        body["iha_irtifa"] =
+            vehicle->altitudeRelative()->rawValue().toDouble();
+    }
+
+    if (vehicle->heading()) {
+        body["iha_yonelme"] =
+            vehicle->heading()->rawValue().toDouble();
+    }
+
+    if (vehicle->groundSpeed()) {
+        body["iha_hiz"] =
+            vehicle->groundSpeed()->rawValue().toDouble();
+    }
+
+    if (vehicle->pitch()) {
+        body["iha_dikilme"] = vehicle->pitch()->rawValue().toDouble();
+    }
+
+    if (vehicle->roll()) {
+        body["iha_yatis"] = vehicle->roll()->rawValue().toDouble();
+    }
+
+    QmlObjectListModel* batteries = vehicle->batteries();
+    QObject* obj = batteries->get(0);
+    QVariant percentVariant = obj->property("percentRemaining");
+    Fact* percentFact = percentVariant.value<Fact*>();
+    double pct = percentFact->rawValue().toDouble();
+    body["iha_batarya"] = pct;
+
+    bool autonomous = false;
+    // flightMode() typically returns a string like "AUTO", "GUIDED", etc.
+    QString fm = vehicle->flightMode();
+    if (!fm.isEmpty()) {
+        QString up = fm.toUpper();
+        if (up.contains("AUTO") || up.contains("GUIDED")) autonomous = true;
+    }
+    body["iha_otonom"] = autonomous ? 1 : 0;
+
+    /*  NOT implemented - PLACEHOLDER
+    int kilitlenme_val = 0;
+    if (vehicle->parameterManager()) {
+        auto p1 = vehicle->parameterManager()->getParameter(vehicle->defaultComponentId(), "KILITLENME");
+        auto p2 = vehicle->parameterManager()->getParameter(vehicle->defaultComponentId(), "iha_kilitlenme");
+        if (p1) kilitlenme_val = p1->rawValue().toInt();
+        else if (p2) kilitlenme_val = p2->rawValue().toInt();
+    }
+    body["iha_kilitlenme"] = kilitlenme_val;
+    TODO hedef
+            "hedef_merkez_X":
+            "hedef_merkez_Y":
+            "hedef_genislik":
+            "hedef_yukseklik":
+    */
+
+    QTime t = QTime::currentTime();
+    QJsonObject gps;
+    gps["saat"] = t.hour();
+    gps["dakika"] = t.minute();
+    gps["saniye"] = t.second();
+    gps["milisaniye"] = t.msec();
+    body["gps_saati"] = gps;
 
     requestJson(
         QNetworkAccessManager::PostOperation,
@@ -326,26 +416,26 @@ void ServerManager::_telemLoop()
         &body,
         [this](const QJsonObject& obj)
         {
-            if (!obj.contains("konum_bilgileri")) {qDebug("no konum_bilgileri in json"); return; }
+            if (!obj.contains("konum_bilgileri")) return;
 
+            QSet<int> seen;
             for (const auto& v : obj["konum_bilgileri"].toArray()) {
                 QJsonObject o = v.toObject();
-
-                int teamId = o["takim_numarasi"].toInt();
-                double lat = o["iha_enlem"].toDouble();
-                double lon = o["iha_boylam"].toDouble();
-                double heading = o["iha_yonelme"].toDouble(0.0);  // Default to 0 if not present
-                double alt = o["iha_irtifa"].toDouble();
-                double speed = o["iha_hizi"].toDouble();
+                int id = o["takim_numarasi"].toInt();
+                seen.insert(id);
 
                 _telemPlaneDataModel.updateAircraft(
-                    teamId,
-                    QGeoCoordinate(lat, lon),
-                    heading,
-                    alt,
-                    speed
+                    id,
+                    QGeoCoordinate(
+                        o["iha_enlem"].toDouble(),
+                        o["iha_boylam"].toDouble()
+                    ),
+                    o["iha_yonelme"].toDouble(),
+                    o["iha_irtifa"].toDouble(),
+                    o["iha_hizi"].toDouble()
                 );
             }
+            _telemPlaneDataModel.removeAircraftNotIn(seen);
         }
     );
 }
@@ -357,6 +447,7 @@ bool ServerManager::telemRunning() const
 
 void ServerManager::toggleTelem()
 {
+    _telemElapsedTimer.invalidate();
     telemRunning() ? _telemTimer->stop()
                    : _telemTimer->start();
 

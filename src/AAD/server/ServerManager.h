@@ -22,7 +22,6 @@ class ServerManager : public QObject
     Q_OBJECT
 
     Q_PROPERTY(bool serversimRunning READ serversimRunning NOTIFY serversimRunningChanged)
-    Q_PROPERTY(bool rosbridgeRunning READ rosbridgeRunning NOTIFY rosbridgeRunningChanged)
     Q_PROPERTY(bool telemRunning READ telemRunning NOTIFY telemRunningChanged)
     Q_PROPERTY(QStringList logs READ logs NOTIFY logsChanged)
     Q_PROPERTY(TelemPlaneDataModel* telemPlaneDataModel READ telemPlaneDataModel CONSTANT)
@@ -37,7 +36,6 @@ public:
 
     // ---- State ----
     bool serversimRunning() const;
-    bool rosbridgeRunning() const;
     bool telemRunning() const;
     QStringList logs() const { return _logs; }
 
@@ -52,9 +50,6 @@ public:
     Q_INVOKABLE void startServerSim();
     Q_INVOKABLE void stopServerSim();
 
-    Q_INVOKABLE void startRosBridge();
-    Q_INVOKABLE void stopRosBridge();
-
     Q_INVOKABLE void toggleTelem();
     Q_INVOKABLE void clearLogs();
     Q_INVOKABLE void setCompetitionField(const QVariantList& coords);
@@ -66,7 +61,6 @@ public:
 
 signals:
     void serversimRunningChanged();
-    void rosbridgeRunningChanged();
     void telemRunningChanged();
     void logsChanged();
     void connectionResult(bool reachable);
@@ -95,7 +89,6 @@ private:
     QString                _baseUrl{"http://127.0.0.1:5000"};
 
     QProcess* _serversimProcess{nullptr};
-    QProcess* _rosbridgeProcess{nullptr};
     QTimer*   _telemTimer{nullptr};
     QElapsedTimer _telemElapsedTimer;
 

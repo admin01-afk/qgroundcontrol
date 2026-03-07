@@ -26,7 +26,9 @@ class VideoManager;
 class QmlObjectListModel;
 class KamikazeLocManager;
 class ServerManager;
+class RosBridgeNode;
 
+Q_MOC_INCLUDE("RosBridgeNode.h")
 Q_MOC_INCLUDE("ServerManager.h")
 Q_MOC_INCLUDE("KamikazeLocManager.h")
 Q_MOC_INCLUDE("ADSBVehicleManager.h")
@@ -65,6 +67,7 @@ public:
 
     Q_PROPERTY(ServerManager*       serverManager           READ    serverManager           CONSTANT)
     Q_PROPERTY(KamikazeLocManager*  kamikazeLocManager      READ    kamikazeLocManager      CONSTANT)
+    Q_PROPERTY(RosBridgeNode*       rosBridge               READ    rosBridge               CONSTANT)
     Q_PROPERTY(QString              appName                 READ    appName                 CONSTANT)
     Q_PROPERTY(LinkManager*         linkManager             READ    linkManager             CONSTANT)
     Q_PROPERTY(MultiVehicleManager* multiVehicleManager     READ    multiVehicleManager     CONSTANT)
@@ -182,6 +185,7 @@ public:
     QmlUnitsConversion*     unitsConversion     ()  { return &_unitsConversion; }
     KamikazeLocManager*     kamikazeLocManager  ()  { return _kamikazeLocManager; }
     ServerManager*          serverManager       ()  { return _serverManager; }
+    RosBridgeNode*          rosBridge           ()  { return _rosBridge; }
     static QGeoCoordinate   flightMapPosition   ()  { return _coord; }
     static double           flightMapZoom       ()  { return _zoom; }
 
@@ -237,6 +241,7 @@ signals:
 private:
     ServerManager*          _serverManager          = nullptr;
     KamikazeLocManager*     _kamikazeLocManager     = nullptr;
+    RosBridgeNode*          _rosBridge              = nullptr;
     QGCMapEngineManager*    _mapEngineManager       = nullptr;
     ADSBVehicleManager*     _adsbVehicleManager     = nullptr;
     QGCPositionManager*     _qgcPositionManager     = nullptr;

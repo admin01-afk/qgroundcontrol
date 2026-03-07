@@ -12,6 +12,7 @@ SettingsPage {
     anchors.fill: parent
 
     property var _serverManager: QGroundControl.serverManager
+    property var _rosBridge: QGroundControl.rosBridge
     property var latFields: []
     property var lonFields: []
 
@@ -90,14 +91,19 @@ SettingsPage {
             Layout.fillWidth: true
             spacing: ScreenTools.defaultFontPixelWidth
 
+            QGCLabel {
+                text: qsTr("RosBridge: Running (Built-in)")
+                color: "#00AA00"
+                font.bold: true
+                verticalAlignment: Text.AlignVCenter
+            }
+
+            Item { Layout.fillWidth: true }
+
             QGCButton {
-                text: _serverManager.rosbridgeRunning
-                      ? qsTr("Stop RosBridge")
-                      : qsTr("Run RosBridge")
+                text: "call /start_yolo"
                 onClicked: {
-                    _serverManager.rosbridgeRunning
-                        ? _serverManager.stopRosBridge()
-                        : _serverManager.startRosBridge()
+                    _rosBridge.callService("/start_yolo")
                 }
             }
         }

@@ -6,7 +6,6 @@ cmake_minimum_required(VERSION 3.25)
 
 include(ExternalProject)
 set(ROS_DISTRO humble)
-option(BUILD_ROSBRIDGE "Build rosbridge package (via colcon) during QGroundControl build" ON)
 
 # ----------------------------------------------------------------------------
 # CMake Module Paths

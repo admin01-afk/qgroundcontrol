@@ -85,6 +85,22 @@ SettingsPage {
                 }
             }
         }
+
+        RowLayout {
+            Layout.fillWidth: true
+            spacing: ScreenTools.defaultFontPixelWidth
+
+            QGCButton {
+                text: _serverManager.rosbridgeRunning
+                      ? qsTr("Stop RosBridge")
+                      : qsTr("Run RosBridge")
+                onClicked: {
+                    _serverManager.rosbridgeRunning
+                        ? _serverManager.stopRosBridge()
+                        : _serverManager.startRosBridge()
+                }
+            }
+        }
     }
 
     /* -------------------------- Login ------------------------- */

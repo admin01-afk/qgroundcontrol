@@ -4,6 +4,10 @@
 
 cmake_minimum_required(VERSION 3.25)
 
+include(ExternalProject)
+set(ROS_DISTRO humble)
+option(BUILD_ROSBRIDGE "Build rosbridge package (via colcon) during QGroundControl build" ON)
+
 # ----------------------------------------------------------------------------
 # CMake Module Paths
 # ----------------------------------------------------------------------------
@@ -274,6 +278,21 @@ include(Coverage)
 
 # Apply compiler warning configuration to QGC target
 qgc_apply_warning_flags()
+if(BUILD_ROSBRIDGE)
+    find_program(COLCON_EXECUTABLE colcon)
+
+    if(NOT COLCON_EXECUTABLE)
+        message(WARNING "colcon not found in PATH — rosbridge will NOT be built.")
+    else()
+        add_custom_target(build_rosbridge ALL
+            COMMENT "Building rosbridge via colcon..."
+            WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/src/AAD/RosBridge
+            COMMAND ./build_rosbridge.sh
+        )
+
+        add_dependencies(${CMAKE_PROJECT_NAME} build_rosbridge)
+    endif()
+endif()
 
 # ----------------------------------------------------------------------------
 # Platform-Specific Configuration
@@ -301,6 +320,11 @@ qt_add_qml_module(${CMAKE_PROJECT_NAME}
         QtQuick.Dialogs
         QtQuick.Layouts
 )
+
+# ----------------------------------------------------------------------------
+# Compile Definitions
+# ----------------------------------------------------------------------------
+target_compile_definitions(${CMAKE_PROJECT_NAME} PRIVATE "QGC_SOURCE_DIR=\"${CMAKE_SOURCE_DIR}\"")
 
 # ----------------------------------------------------------------------------
 # Source & Test Subdirectories

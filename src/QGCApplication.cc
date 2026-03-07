@@ -40,7 +40,6 @@
 #include "Vehicle.h"
 #include "VehicleComponent.h"
 #include "VideoManager.h"
-#include "AAD/RosBridge/RosProcessBridge.h"
 
 #ifndef QGC_NO_SERIAL_LINK
 #include "SerialLink.h"
@@ -256,15 +255,6 @@ void QGCApplication::_initForNormalAppBoot()
     MAVLinkProtocol::instance()->init();
     MultiVehicleManager::instance()->init();
     _qmlAppEngine = QGCCorePlugin::instance()->createQmlApplicationEngine(this);
-
-    /* ===================== ROS BRIDGE QML REGISTRATION ===================== */
-    qmlRegisterSingletonType<RosProcessBridge>(
-        "AAD", 1, 0, "RosBridge",
-        [](QQmlEngine*, QJSEngine*) -> QObject* {
-            return new RosProcessBridge(qApp);
-        }
-    );
-    /* ====================================================================== */
 
     QObject::connect(_qmlAppEngine, &QQmlApplicationEngine::objectCreationFailed, this, QCoreApplication::quit, Qt::QueuedConnection);
     QGCCorePlugin::instance()->createRootWindow(_qmlAppEngine);

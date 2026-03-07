@@ -79,7 +79,7 @@ SettingsPage {
                         const lat = parseFloat(latField.text)
                         const lon = parseFloat(lonField.text)
 
-                        _kamikazeLocManager.setCoordinate(
+                        _kamikazeLocManager.sendParameters(
                             QtPositioning.coordinate(lat, lon)
                         )
                     }

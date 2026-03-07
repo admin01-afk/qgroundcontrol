@@ -48,7 +48,9 @@ void KamikazeLocManager::setCoordinate(QGeoCoordinate coord)
 
     _coordinate = coord;
     emit coordinateChanged();
+}
 
+void KamikazeLocManager::sendParameters(QGeoCoordinate coord){
     // Get active vehicle
     MultiVehicleManager *const manager = MultiVehicleManager::instance();
     Vehicle* vehicle = manager->activeVehicle();

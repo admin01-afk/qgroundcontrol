@@ -71,9 +71,6 @@ target_sources(${CMAKE_PROJECT_NAME}
         pch.h
         QGCApplication.cc
         QGCApplication.h
-
-        AAD/RosBridge/RosProcessBridge.cc
-        AAD/RosBridge/RosProcessBridge.h
 )
 
 

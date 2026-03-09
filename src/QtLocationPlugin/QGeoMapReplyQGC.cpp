@@ -4,6 +4,7 @@
 #include <QtLocation/private/qgeotilespec_p.h>
 #include <QtNetwork/QNetworkAccessManager>
 #include <QtNetwork/QSslError>
+#include <QElapsedTimer>
 
 #include "QGCNetworkHelper.h"
 #include "ElevationMapProvider.h"
@@ -121,7 +122,11 @@ void QGeoTiledMapReplyQGC::_networkReplyFinished()
     }
 
     if (mapProvider->isBingProvider() && (image == _bingNoTileImage)) {
-        setError(QGeoTiledMapReply::CommunicationError, tr("Bing Tile Above Zoom Level"));
+        static QElapsedTimer timer;
+        if (!timer.isValid() || timer.elapsed() > 5000) { // log at most once every 5s
+            setError(QGeoTiledMapReply::CommunicationError, tr("Bing Tile Above Zoom Level"));
+            timer.start();
+        }
         return;
     }
 

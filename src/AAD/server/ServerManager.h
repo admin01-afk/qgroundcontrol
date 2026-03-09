@@ -11,6 +11,7 @@
 #include <QGeoCoordinate>
 #include <QVariantList>
 #include <QElapsedTimer>
+#include <QNetworkAccessManager>
 
 #include "TelemPlaneDataModel.h"
 

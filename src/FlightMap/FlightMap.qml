@@ -32,6 +32,7 @@ Map {
     property var    _kamikazeLocManager:        QGroundControl.kamikazeLocManager
     property var    _serverManager:             QGroundControl.serverManager
     property var    _rightClickCoordinate:      undefined
+    property int maxZoomLevel: 19
 
     property real popupX: 0
     property real popupY: 0
@@ -69,7 +70,7 @@ Map {
             }
 
             if (_map.qPressed) _map.zoomLevel = Math.max(_map.zoomLevel - 0.1, 2) // Minimum zoom level
-            if (_map.ePressed) _map.zoomLevel = Math.min(_map.zoomLevel + 0.1, 18) // Maximum zoom level
+            if (_map.ePressed) _map.zoomLevel = Math.min(_map.zoomLevel + 0.1, _map.maxZoomLevel) // Maximum zoom level
 
         }
     }
@@ -256,11 +257,10 @@ Map {
         // This works around a bug on Qt where if you set a visibleRegion and then the user moves or zooms the map
         // and then you set the same visibleRegion the map will not move/scale appropriately since it thinks there
         // is nothing to do.
-        let maxZoomLevel = 20
         _map.visibleRegion = QtPositioning.rectangle(QtPositioning.coordinate(0, 0), QtPositioning.coordinate(0, 0))
         _map.visibleRegion = region
-        if (_map.zoomLevel > maxZoomLevel) {
-            _map.zoomLevel = maxZoomLevel
+        if (_map.zoomLevel > _map.maxZoomLevel) {
+            _map.zoomLevel = _map.maxZoomLevel
         }
     }
 
@@ -321,6 +321,15 @@ Map {
             updateActiveMapType()
             _possiblyCenterToVehiclePosition()
         }
+    }
+
+    onZoomLevelChanged: {
+        let clamped = Math.max(0, Math.min(_map.zoomLevel, maxZoomLevel))
+        if (zoomLevel !== clamped) {
+             _map.zoomLevel = clamped
+            return
+        }
+        //console.log("zoom changed", zoomLevel)
     }
 
     Connections {

@@ -372,8 +372,8 @@ void ServerManager::_telemLoop()
     }
 
     QmlObjectListModel* batteries = vehicle->batteries();
-    QObject* obj = batteries->get(0);
-    QVariant percentVariant = obj->property("percentRemaining");
+    QObject* btr_obj = batteries->get(0);
+    QVariant percentVariant = btr_obj->property("percentRemaining");
     Fact* percentFact = percentVariant.value<Fact*>();
     double pct = percentFact->rawValue().toDouble();
     body["iha_batarya"] = pct;

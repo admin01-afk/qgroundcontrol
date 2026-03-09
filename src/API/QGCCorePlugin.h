@@ -35,6 +35,7 @@ class QGCCorePlugin : public QObject
     Q_PROPERTY(int defaultSettings                      READ defaultSettings                                                CONSTANT)
     Q_PROPERTY(int offlineVehicleFirstRunPromptId       MEMBER kOfflineVehicleFirstRunPromptId                              CONSTANT)
     Q_PROPERTY(int unitsFirstRunPromptId                MEMBER kUnitsFirstRunPromptId                                       CONSTANT)
+    Q_PROPERTY(int ADDEditionFirstRunPromptId           MEMBER kADDEditionFirstRunPromptId                                  CONSTANT)
     Q_PROPERTY(const QGCOptions *options                READ options                                                        CONSTANT)
     Q_PROPERTY(const QmlObjectListModel *customMapItems READ customMapItems                                                 CONSTANT)
     Q_PROPERTY(QString brandImageIndoor                 READ brandImageIndoor                                               CONSTANT)
@@ -153,7 +154,7 @@ public:
     /// Returns the standard list of first run prompt ids for possible display. Actual display is based on the
     /// current AppSettings::firstRunPromptIds value. The order of this list also determines the order the prompts
     /// will be displayed in.
-    virtual QList<int> firstRunPromptStdIds() { return QList<int>({ kUnitsFirstRunPromptId, kOfflineVehicleFirstRunPromptId }); }
+    virtual QList<int> firstRunPromptStdIds() { return QList<int>({ kUnitsFirstRunPromptId, kOfflineVehicleFirstRunPromptId, kADDEditionFirstRunPromptId }); }
 
     /// Returns the custom build list of first run prompt ids for possible display. Actual display is based on the
     /// current AppSettings::firstRunPromptIds value. The order of this list also determines the order the prompts
@@ -185,6 +186,7 @@ public:
     // Standard first run prompt ids
     static constexpr int kUnitsFirstRunPromptId = 1;
     static constexpr int kOfflineVehicleFirstRunPromptId = 2;
+    static constexpr int kADDEditionFirstRunPromptId = 3;
 
     // Custom builds can start there first run prompt ids from here
     static constexpr int kFirstRunPromptIdsFirstCustomId = 10000;

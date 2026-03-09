@@ -354,6 +354,8 @@ QString QGCCorePlugin::firstRunPromptResource(int id) const
         return QStringLiteral("/qml/QGroundControl/FirstRunPromptDialogs/UnitsFirstRunPrompt.qml");
     case kOfflineVehicleFirstRunPromptId:
         return QStringLiteral("/qml/QGroundControl/FirstRunPromptDialogs/OfflineVehicleFirstRunPrompt.qml");
+    case kADDEditionFirstRunPromptId:
+        return QStringLiteral("/qml/QGroundControl/FirstRunPromptDialogs/ADDEditionFirstRunPrompt.qml");
     default:
         return QString();
     }

@@ -27,13 +27,18 @@ ApplicationWindow {
     Connections {
         target: _serverManager
 
-        function onErrorOccurred(header,message) {
+        function onErrorOccurred(header, message) {
             const key = header + "::" + message
-            if (key === mainWindow._lastErrorKey) return
+            if (key === mainWindow._lastErrorKey)
+                return
+
             mainWindow._lastErrorKey = key
-            mainWindow.showMessageDialog(
+
+            QGroundControl.showMessageDialog(
+                mainWindow,
                 header,
-                message
+                message,
+                Dialog.Ok
             )
         }
     }

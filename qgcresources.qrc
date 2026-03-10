@@ -109,8 +109,6 @@
         <qresource prefix="/qml">
         <file alias="QGroundControl/AppSettings/NTRIPSettings.qml">src/UI/AppSettings/NTRIPSettings.qml</file>
         <file alias="NTRIPSettings.qml">src/UI/AppSettings/NTRIPSettings.qml</file>
-        <file alias="QGroundControl/AppSettings/KamikazeSettings.qml">src/UI/AppSettings/KamikazeSettings.qml</file>
-        <file alias="QGroundControl/AppSettings/Server.qml">src/UI/AppSettings/Server.qml</file>
     </qresource>
     <qresource prefix="/json">
         <file alias="NTRIP.SettingsGroup.json">src/Settings/NTRIP.SettingsGroup.json</file>

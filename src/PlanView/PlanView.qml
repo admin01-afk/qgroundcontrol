@@ -279,10 +279,13 @@ Item {
             }
             onCenterChanged: {
                 QGroundControl.flightMapPosition = editorMap.center
+
                 if (_homeTrackingMapCenter && !_planMasterController.containsItems) {
-                    _updatingHomeFromMapCenter = true
-                    _visualItems.get(0).coordinate = editorMap.center
-                    _updatingHomeFromMapCenter = false
+                    if (_visualItems.count > 0) {
+                        _updatingHomeFromMapCenter = true
+                        _visualItems.get(0).coordinate = editorMap.center
+                        _updatingHomeFromMapCenter = false
+                    }
                 }
             }
 

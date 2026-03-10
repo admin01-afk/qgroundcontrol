@@ -325,7 +325,7 @@ Map {
 
     onZoomLevelChanged: {
         let clamped = Math.max(0, Math.min(_map.zoomLevel, maxZoomLevel))
-        if (zoomLevel !== clamped) {
+        if (_map.zoomLevel !== clamped) {
              _map.zoomLevel = clamped
             return
         }

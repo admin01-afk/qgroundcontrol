@@ -21,7 +21,7 @@
 #include "VideoReceiver.h"
 
 #ifdef QGC_CUSTOM_BUILD
-#include CUSTOMHEADER
+    #include CUSTOMHEADER
 #endif
 
 #include <QtCore/QApplicationStatic>

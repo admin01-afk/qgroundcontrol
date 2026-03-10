@@ -28,5 +28,9 @@ qt_add_qml_module(AppSettingsModule
         TelemetrySettings.qml
         UdpSettings.qml
         VideoSettings.qml
+        Server.qml
+        Kamikaze.qml
+        General.qml
+        Tracking.qml
     NO_PLUGIN
 )

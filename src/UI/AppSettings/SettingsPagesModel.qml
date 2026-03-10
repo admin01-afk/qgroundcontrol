@@ -15,7 +15,19 @@ ListModel {
     }
     ListElement {
         name: qsTr("Kamikaze")
-        url: "qrc:/qml/QGroundControl/AppSettings/KamikazeSettings.qml"
+        url: "qrc:/qml/QGroundControl/AppSettings/Kamikaze.qml"
+        iconUrl: "qrc:/InstrumentValueIcons/target.svg"
+        pageVisible: function() { return QGroundControl.settingsManager.appSettings.operationMode === AppSettings.SAVASAN}
+    }
+    ListElement {
+        name: qsTr("General")
+        url: "qrc:/qml/QGroundControl/AppSettings/General.qml"
+        iconUrl: "qrc:/InstrumentValueIcons/target.svg"
+        pageVisible: function() { return QGroundControl.settingsManager.appSettings.operationMode === AppSettings.SAVASAN}
+    }
+    ListElement {
+        name: qsTr("Tracking")
+        url: "qrc:/qml/QGroundControl/AppSettings/Tracking.qml"
         iconUrl: "qrc:/InstrumentValueIcons/target.svg"
         pageVisible: function() { return QGroundControl.settingsManager.appSettings.operationMode === AppSettings.SAVASAN}
     }
@@ -25,7 +37,7 @@ ListModel {
     }
 
     ListElement {
-        name: qsTr("General")
+        name: qsTr("General Settings")
         url: "qrc:/qml/QGroundControl/AppSettings/GeneralSettings.qml"
         iconUrl: "qrc:/res/QGCLogoWhite.svg"
         pageVisible: function() { return true }

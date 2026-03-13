@@ -16,8 +16,6 @@ SettingsPage {
     property var _serverManager:      QGroundControl.serverManager
 
     // exported signals so C++ or other QML can hook into functionality
-    signal hssPullRequested()
-    signal hssPushRequested()
     signal recordingStarted()
     signal recordingStopped()
     signal competitionStarted(int competitionNo)
@@ -36,13 +34,13 @@ SettingsPage {
                 Layout.fillWidth: true
                 spacing: ScreenTools.defaultFontPixelWidth
 
-                QGCLabel {
+                QGCLabel { enabled: false
                     text: qsTr("Competition no")
                     Layout.preferredWidth: 140
                     verticalAlignment: Text.AlignVCenter
                 }
 
-                ComboBox {
+                ComboBox { enabled: false
                     id: competitionNoCombo
                     Layout.preferredWidth: 120
                     // simple numeric list — adapt / expand as needed
@@ -91,7 +89,7 @@ SettingsPage {
                 spacing: ScreenTools.defaultFontPixelWidth
 
                 // single toggle button for recording
-                QGCButton {
+                QGCButton { enabled: false
                     id: recordBtn
                     property bool recording: false
                     text: recording ? qsTr("Stop recording") : qsTr("Start recording")
@@ -106,31 +104,9 @@ SettingsPage {
                 }
 
                 QGCButton {
-                    text: qsTr("HSS Pull")
+                    text: qsTr("HSS Pull&Push")
                     onClicked: {
-                        // emit signal for backend or parent QML to implement
-                        hssPullRequested()
-                    }
-                }
-
-                QGCButton {
-                    text: qsTr("HSS Push")
-                    onClicked: {
-                        hssPushRequested()
-                    }
-                }
-
-                Item { Layout.fillWidth: true }
-
-                QGCButton {
-                    text: qsTr("QR request")
-                    onClicked: {
-                        // reusing your existing server manager call
-                        if (_serverManager && typeof _serverManager.getQRCoordinates === "function") {
-                            _serverManager.getQRCoordinates()
-                        } else {
-                            console.warn("Server manager not available or getQRCoordinates not found")
-                        }
+                        _serverManager.getHSS()
                     }
                 }
             }
@@ -139,7 +115,7 @@ SettingsPage {
 
     // --- countdown logic ---
     property bool competitionRunning: false
-    property int timeLeftSeconds: 0
+    property int timeLeftSeconds: 15 * 60
 
     Timer {
         id: countdownTimer

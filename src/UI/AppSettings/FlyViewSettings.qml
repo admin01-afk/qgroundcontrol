@@ -33,6 +33,24 @@ SettingsPage {
         Layout.fillWidth:   true
         heading:            qsTr("General")
 
+        RowLayout {
+            ComboBox {
+                id: panelDirectionCombo
+                Layout.preferredWidth: 250
+
+                model: [
+                    qsTr("Slide Panel from Top"),
+                    qsTr("Slide Panel from Bottom")
+                ]
+
+                currentIndex: QGroundControl.settingsManager.appSettings.panelSlideFromTop ? 0 : 1
+
+                onActivated: function(index) {
+                    QGroundControl.settingsManager.appSettings.panelSlideFromTop = (index === 0)
+                }
+            }
+        }
+
         FactCheckBoxSlider {
             id:                 useCheckList
             Layout.fillWidth:   true

@@ -93,13 +93,11 @@ RosBridgeNode::~RosBridgeNode()
 #endif
 }
 
-// have service_names here, not in qml
-void RosBridgeNode::startYolo() { callService("/start_yolo"); }
-
 void RosBridgeNode::callService(const QString& serviceNameQ)
 {
-#ifdef ROSBRIDGE_ENABLE_ROS
+    #ifdef ROSBRIDGE_ENABLE_ROS
     const std::string serviceName = serviceNameQ.toStdString();
+    const int SRV_WAIT_TIMEOUT_SEC = 10;
 
     // do the waiting + call in another std::thread so we don't block the UI thread
     std::thread([this, serviceName]() {
@@ -111,6 +109,7 @@ void RosBridgeNode::callService(const QString& serviceNameQ)
         rclcpp::WallRate wait_rate(1s);
         int attempts = 0;
         while (!client->wait_for_service(1s)) {
+            if(attempts > SRV_WAIT_TIMEOUT_SEC){ qWarning() << "RosBridgeNode: TimeOut- srv_call:" << QString::fromStdString(serviceName); return;}
             attempts++;
             if (attempts % 5 == 0) {
                 qDebug() << "RosBridgeNode: still waiting for service" << QString::fromStdString(serviceName);

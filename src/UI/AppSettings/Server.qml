@@ -86,27 +86,6 @@ SettingsPage {
                 }
             }
         }
-
-        RowLayout {
-            Layout.fillWidth: true
-            spacing: ScreenTools.defaultFontPixelWidth
-
-            QGCLabel {
-                text: qsTr("RosBridge: Running (Built-in)")
-                color: "#00AA00"
-                font.bold: true
-                verticalAlignment: Text.AlignVCenter
-            }
-
-            Item { Layout.fillWidth: true }
-
-            QGCButton {
-                text: "call /start_yolo"
-                onClicked: {
-                    _rosBridge.callService("/start_yolo")
-                }
-            }
-        }
     }
 
     /* -------------------------- Login ------------------------- */

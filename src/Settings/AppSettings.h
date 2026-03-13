@@ -55,6 +55,7 @@ public:
     DEFINE_SETTINGFACT(firstRunPromptIdsShown)
 
     Q_PROPERTY(OperationMode operationMode READ operationMode WRITE setOperationMode NOTIFY operationModeChanged)
+    Q_PROPERTY(bool panelSlideFromTop READ panelSlideFromTop WRITE setPanelSlideFromTop NOTIFY panelSlideFromTopChanged)
     Q_PROPERTY(QString missionSavePath          READ missionSavePath            NOTIFY savePathsChanged)
     Q_PROPERTY(QString parameterSavePath        READ parameterSavePath          NOTIFY savePathsChanged)
     Q_PROPERTY(QString telemetrySavePath        READ telemetrySavePath          NOTIFY savePathsChanged)
@@ -89,6 +90,10 @@ public:
     OperationMode operationMode() const;
     void setOperationMode(OperationMode mode);
 
+    bool panelSlideFromTop() const;
+    void setPanelSlideFromTop(bool value);
+    void loadSettings();
+
     // Helper methods for working with firstRunPromptIds QVariant settings string list
     static QList<int> firstRunPromptsIdsVariantToList   (const QVariant& firstRunPromptIds);
     static QVariant   firstRunPromptsIdsListToVariant   (const QList<int>& rgIds);
@@ -119,6 +124,7 @@ public:
 signals:
     void savePathsChanged();
     void operationModeChanged();
+    void panelSlideFromTopChanged();
 
 private slots:
     void _indoorPaletteChanged();

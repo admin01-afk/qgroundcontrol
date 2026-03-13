@@ -5,11 +5,13 @@ import QtQuick.Layouts
 import QGroundControl
 import QGroundControl.Controls
 import Custom.Widgets
+import QGroundControl.AppSettings
 
 Item {
     id: root
     property var parentToolInsets                       // These insets tell you what screen real estate is available for positioning the controls in your overlay
     property var mapControl
+    property var appSettings: QGroundControl.settingsManager.appSettings
 
     readonly property string noGPS:         qsTr("NO GPS")
     readonly property real   indicatorValueWidth:   ScreenTools.defaultFontPixelWidth * 7
@@ -28,6 +30,22 @@ Item {
     property string _messageText:           ""
     property real   _toolsMargin:           ScreenTools.defaultFontPixelWidth * 3
 
+    QGCToolInsets {
+        id:                     _totalToolInsets
+        leftEdgeTopInset:       parentToolInsets.leftEdgeTopInset
+        leftEdgeCenterInset:    0
+        leftEdgeBottomInset:    parentToolInsets.leftEdgeBottomInset
+        rightEdgeTopInset:      parentToolInsets.rightEdgeTopInset
+        rightEdgeCenterInset:   parentToolInsets.rightEdgeCenterInset
+        rightEdgeBottomInset:   0
+        topEdgeLeftInset:       parentToolInsets.topEdgeLeftInset
+        topEdgeCenterInset:     0
+        topEdgeRightInset:      parentToolInsets.topEdgeRightInset
+        bottomEdgeLeftInset:    parentToolInsets.bottomEdgeLeftInset
+        bottomEdgeCenterInset:  parentToolInsets.bottomEdgeCenterInset
+        bottomEdgeRightInset:   0
+    }
+
     /* panel state */
     property bool panelOpen: false
     property int currentIndex: 0
@@ -35,14 +53,26 @@ Item {
         {
             name: qsTr("Server"),
             url: "qrc:/qml/QGroundControl/AppSettings/Server.qml",
-            icon: "qrc:/InstrumentValueIcons/servers.svg",
+            iconUrl: "qrc:/InstrumentValueIcons/servers.svg",
             pageVisible: function() { return true }
         },
         {
             name: qsTr("Kamikaze"),
             url: "qrc:/qml/QGroundControl/AppSettings/Kamikaze.qml",
-            icon: "qrc:/InstrumentValueIcons/target.svg",
+            iconUrl: "qrc:/res/qr.png",
+            pageVisible: function() { return QGroundControl.settingsManager.appSettings.operationMode === AppSettings.SAVASAN}
+        },
+        {
+            name: qsTr("General"),
+            url: "qrc:/qml/QGroundControl/AppSettings/General.qml",
+            iconUrl: "qrc:/InstrumentValueIcons/wrench.svg",
             pageVisible: function() { return true }
+        },
+        {
+            name: qsTr("Tracking"),
+            url: "qrc:/qml/QGroundControl/AppSettings/Tracking.qml",
+            iconUrl: "qrc:/InstrumentValueIcons/target.svg",
+            pageVisible: function() { return QGroundControl.settingsManager.appSettings.operationMode === AppSettings.SAVASAN}
         }
     ]
 
@@ -60,6 +90,10 @@ Item {
             panelOpen = !panelOpen
         }
     }
+    Shortcut { sequence: "1"; onActivated: root.currentIndex = 0 }
+    Shortcut { sequence: "2"; onActivated: root.currentIndex = 1 }
+    Shortcut { sequence: "3"; onActivated: root.currentIndex = 2 }
+    Shortcut { sequence: "4"; onActivated: root.currentIndex = 3 }
 
     ListModel { id: pagesModel }
 
@@ -72,7 +106,7 @@ Item {
                 console.warn("pageVisible threw", allPages[i].name, e)
                 continue
             }
-            pagesModel.append({ name: allPages[i].name, url: allPages[i].url, icon: allPages[i].icon })
+            pagesModel.append({ name: allPages[i].name, url: allPages[i].url, iconUrl: allPages[i].iconUrl })
         }
         if (pagesModel.count === 0) currentIndex = -1
         else if (currentIndex < 0 || currentIndex >= pagesModel.count) currentIndex = 0
@@ -83,13 +117,12 @@ Item {
     Rectangle {
         id: panel
         width: parent.width
-        height: Math.min(parent.height * 0.65, 900)
+        height: Math.min(parent.height * 0.90, 900)
         x: 0
-        y: panelOpen ? 0 : -height
+        y: panelOpen ? 0 : (appSettings.panelSlideFromTop ? -1 : 1) * (parent.height + (toolbar ? toolbar.height : 0))
         z: 100
-        color: qgcPal.windowShade
+        color: qgcPal.windowShadeDark
         Behavior on y { NumberAnimation { duration: 200; easing.type: Easing.OutCubic } }
-
 
         ColumnLayout {
             anchors.fill: parent
@@ -105,54 +138,51 @@ Item {
                     model: pagesModel
                     delegate: ToolButton {
                         id: tb
-                        checkable: true
-                        checked: index === root.currentIndex
 
-                        // friendly fixed button size so layout is stable
-                        property real btnHeight: ScreenTools.defaultFontPixelHeight * 2.4
-                        height: btnHeight
-                        width: Math.max(120, implicitWidth)   // allows label to define width but keeps a minimum
+                        property bool selected: index === root.currentIndex
 
-                        onClicked: {
-                            console.log("TAB CLICK:", index, name)
-                            root.currentIndex = index
-                        }
+                        checkable: false
+                        width: Math.max(120, implicitWidth)
+                        height: ScreenTools.defaultFontPixelHeight * 2.4
 
-                        // content: icon + label, centered
-                        contentItem: Row {
+                        onClicked: { if (root.currentIndex !== index) root.currentIndex = index }
+
+                        contentItem: RowLayout {
                             anchors.centerIn: parent
                             spacing: ScreenTools.defaultFontPixelWidth / 2
+                            Layout.fillWidth: true
+                            Layout.alignment: Qt.AlignVCenter
 
-                            Image {
-                                id: tabIcon
-                                source: (typeof icon === "object" && icon && icon.source) ? icon.source : icon
-                                width: ScreenTools.defaultFontPixelWidth * 1.6
-                                height: ScreenTools.defaultFontPixelHeight * 1.6
-                                fillMode: Image.PreserveAspectFit
-                                visible: source !== undefined && source !== ""
+                            // --- Icon ---
+                            Item {
+                                width: tabLabel.font.pixelSize       // limit width to label height
+                                height: tabLabel.font.pixelSize      // limit height to label height
+                                Layout.alignment: Qt.AlignVCenter
+
+                                Image {
+                                    anchors.fill: parent
+                                    source: iconUrl
+                                    fillMode: Image.PreserveAspectFit
+                                }
                             }
 
+                            // --- Label ---
                             Label {
                                 id: tabLabel
                                 text: name
                                 font.pixelSize: ScreenTools.defaultFontPixelHeight
-                                color: tb.checked ? qgcPal.textOnHighlight : qgcPal.text
-                                // let label set implicitWidth naturally
+                                color: tb.selected ? qgcPal.text : qgcPal.text
+                                Layout.alignment: Qt.AlignVCenter
                             }
                         }
 
-                        // background fills the whole button (no implicit bindings to content)
                         background: Rectangle {
                             anchors.fill: parent
                             radius: 6
-                            color: tb.checked ? qgcPal.buttonHighlight : "transparent"
-                            border.color: tb.checked ? qgcPal.highlightColor : "transparent"
-                            border.width: tb.checked ? 1 : 0
+                            color: tb.selected ? qgcPal.buttonHighlight : "transparent"
+                            border.color: tb.selected ? qgcPal.buttonHighlight : "transparent"
+                            border.width: tb.selected ? 1 : 0
                         }
-
-                        // subtle hover effect (QtQuick Controls standard states)
-                        hoverEnabled: true
-                        onPressedChanged: { /* keep default behavior */ }
                     }
                 }
                 Item { Layout.fillWidth: true } // spacer
@@ -171,15 +201,6 @@ Item {
                     asynchronous: true
                     active: pagesModel.count>0 && root.currentIndex >= 0
                     source: (pagesModel.count>0 && root.currentIndex >= 0) ? pagesModel.get(root.currentIndex).url : ""
-
-                    onStatusChanged: {
-                        console.log("Loader.status:", status, "source:", source)
-                        if (status === Loader.Error) {
-                            console.warn("Loader failed:", pageLoader.errorString)
-                        } else if (status === Loader.Ready) {
-                            console.log("Loaded item:", pageLoader.item ? pageLoader.item : "null")
-                        }
-                    }
                 }
                 Text { anchors.centerIn: parent; text: qsTr("No pages"); visible: !pageLoader.active }
             }

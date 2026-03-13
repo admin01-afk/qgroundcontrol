@@ -196,6 +196,21 @@ DECLARE_SETTINGSFACT_NO_FUNC(AppSettings, qLocaleLanguage)
     return _qLocaleLanguageFact;
 }
 
+bool AppSettings::panelSlideFromTop() const
+{
+    QSettings settings;
+    return settings.value("Panel/SlideFromTop", true).toBool();
+}
+
+void AppSettings::setPanelSlideFromTop(bool value)
+{
+    if (panelSlideFromTop() == value) return;
+
+    QSettings settings;
+    settings.setValue("Panel/SlideFromTop", value);
+    emit panelSlideFromTopChanged();
+}
+
 static const char* kOperationModeKey = "OperationMode";
 
 AppSettings::OperationMode AppSettings::operationMode() const

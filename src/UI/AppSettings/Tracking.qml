@@ -48,18 +48,18 @@ SettingsPage {
                     verticalAlignment: Text.AlignVCenter
                 }
 
-                ComboBox {
+                ComboBox { enabled: false
                     id: targetCombo
                     Layout.preferredWidth: 140
                     // replace with dynamic model if you have one
-                    model: [ "1", "2", "3", "4" ]
+                    // model: [ "1", "2", "3", "4" ]
                     onCurrentTextChanged: {
                         targetChanged(currentText)
                         addLog("Target selected: " + currentText)
                     }
                 }
 
-                QGCButton {
+                QGCButton { enabled: false
                     text: qsTr("Select manually")
                     onClicked: {
                         selectManually()
@@ -67,7 +67,7 @@ SettingsPage {
                     }
                 }
 
-                QGCButton {
+                QGCButton { enabled: false
                     text: qsTr("Start auto selection")
                     onClicked: {
                         startAutoSelection()
@@ -88,6 +88,7 @@ SettingsPage {
                     onCheckedChanged: {
                         gpsTrackActive = checked
                         addLog("GPS Track " + (checked ? "enabled" : "disabled"))
+                        if(checked){_rosBridge.startNavigation()}else{_rosBridge.stopNavigation()}
                     }
                 }
 
@@ -98,6 +99,7 @@ SettingsPage {
                     onCheckedChanged: {
                         visualTrackActive = checked
                         addLog("Visual Track " + (checked ? "enabled" : "disabled"))
+                        if(checked){_rosBridge.startVisualTrack()}else{_rosBridge.stopVisualTrack()}
                     }
                 }
 
@@ -108,24 +110,7 @@ SettingsPage {
                     onCheckedChanged: {
                         yoloActive = checked
                         addLog("Yolo " + (checked ? "enabled" : "disabled"))
-                        if (checked) {
-                            // call the ROS service to start YOLO
-                            if (_rosBridge && typeof _rosBridge.callService === "function") {
-                                try {
-                                    _rosBridge.callService("/start_yolo")
-                                    addLog("Called /start_yolo service")
-                                } catch (e) {
-                                    console.warn("Error calling /start_yolo:", e)
-                                    addLog("Error calling /start_yolo: " + e)
-                                }
-                            } else {
-                                console.warn("rosBridge not available or callService missing")
-                                addLog("rosBridge not available")
-                            }
-                        } else {
-                            // optional: if you have a stop service, call it here
-                            // addLog("Yolo stop requested")
-                        }
+                        if(checked){_rosBridge.startYolo()}else{_rosBridge.stopYolo()}
                     }
                 }
             }

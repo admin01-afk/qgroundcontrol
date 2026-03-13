@@ -15,7 +15,18 @@ public:
     explicit RosBridgeNode(QObject* parent = nullptr);
     ~RosBridgeNode();
 
-    Q_INVOKABLE void startYolo();
+    // have service_names here, not in qml
+    Q_INVOKABLE void startYolo() { callService("/start_yolo"); }
+    Q_INVOKABLE void stopYolo() { callService("/stop_yolo"); }
+
+    Q_INVOKABLE void startNavigation() { callService("/start_navigation"); }
+    Q_INVOKABLE void stopNavigation() {callService("/stop_navigation"); }
+
+    Q_INVOKABLE void startVisualTrack() { callService("/start_visual_track"); }
+    Q_INVOKABLE void stopVisualTrack() { callService("/stop_visual_track"); }
+
+
+
     Q_INVOKABLE void callService(const QString& serviceName);
 
 signals:

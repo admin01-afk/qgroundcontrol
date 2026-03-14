@@ -90,10 +90,20 @@ Item {
             panelOpen = !panelOpen
         }
     }
-    Shortcut { sequence: "1"; onActivated: root.currentIndex = 0 }
-    Shortcut { sequence: "2"; onActivated: root.currentIndex = 1 }
-    Shortcut { sequence: "3"; onActivated: root.currentIndex = 2 }
-    Shortcut { sequence: "4"; onActivated: root.currentIndex = 3 }
+    Repeater {
+        model: pagesModel
+        delegate: Item { width: 0 ; height: 0
+            Shortcut {
+                sequence: (index + 1).toString()
+                context: Qt.ApplicationShortcut
+
+                onActivated: {
+                    if (Qt.focusItem && Qt.focusItem.cursorPosition !== undefined) return
+                    root.currentIndex = index
+                }
+            }
+        }
+    }
 
     ListModel { id: pagesModel }
 
@@ -198,7 +208,7 @@ Item {
                 Loader {
                     id: pageLoader
                     anchors.fill: parent
-                    asynchronous: true
+                    asynchronous: false
                     active: pagesModel.count>0 && root.currentIndex >= 0
                     source: (pagesModel.count>0 && root.currentIndex >= 0) ? pagesModel.get(root.currentIndex).url : ""
                 }

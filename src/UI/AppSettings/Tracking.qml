@@ -81,37 +81,34 @@ SettingsPage {
                 Layout.fillWidth: true
                 spacing: ScreenTools.defaultFontPixelWidth
 
-                CheckBox {
-                    id: gpsCheck
-                    text: qsTr("GPS Track Active")
-                    checked: gpsTrackActive
-                    onCheckedChanged: {
-                        gpsTrackActive = checked
-                        addLog("GPS Track " + (checked ? "enabled" : "disabled"))
-                        if(checked){_rosBridge.startNavigation()}else{_rosBridge.stopNavigation()}
-                    }
+                ServiceCheckBox {
+                    text: "GPS Track Active"
+                    rosBridge: page._rosBridge
+                    serviceStart: "/start_navigation"
+                    serviceStop: "/stop_navigation"
+                    active: page.gpsTrackActive
+                    logPrefix: "GPS_Track"
+                    logFn: page.addLog
                 }
 
-                CheckBox {
-                    id: visualCheck
-                    text: qsTr("Visual Track Active")
-                    checked: visualTrackActive
-                    onCheckedChanged: {
-                        visualTrackActive = checked
-                        addLog("Visual Track " + (checked ? "enabled" : "disabled"))
-                        if(checked){_rosBridge.startVisualTrack()}else{_rosBridge.stopVisualTrack()}
-                    }
+                ServiceCheckBox {
+                    text: "Visual Track Active"
+                    rosBridge: page._rosBridge
+                    serviceStart: "/start_visual_track"
+                    serviceStop: "/stop_visual_track"
+                    active: page.visualTrackActive
+                    logPrefix: "Visual_Track"
+                    logFn: page.addLog
                 }
 
-                CheckBox {
-                    id: yoloCheck
-                    text: qsTr("Yolo Active")
-                    checked: yoloActive
-                    onCheckedChanged: {
-                        yoloActive = checked
-                        addLog("Yolo " + (checked ? "enabled" : "disabled"))
-                        if(checked){_rosBridge.startYolo()}else{_rosBridge.stopYolo()}
-                    }
+                ServiceCheckBox {
+                    text: "Yolo Active"
+                    rosBridge: page._rosBridge
+                    serviceStart: "/start_yolo"
+                    serviceStop: "/stop_yolo"
+                    active: page.yoloActive
+                    logPrefix: "Yolo"
+                    logFn: page.addLog
                 }
             }
 
@@ -147,7 +144,7 @@ SettingsPage {
                             delegate: Text {
                                 text: message
                                 wrapMode: Text.Wrap
-                                font.pixelSize: ScreenTools.defaultFontPixelHeight - 2
+                                font.pixelSize: ScreenTools.defaultFontPixelHeight - 4
                                 verticalAlignment: Text.AlignVCenter
                             }
                         }
@@ -174,13 +171,8 @@ SettingsPage {
 
     // helper function to add time-stamped log entries
     function addLog(msg) {
-        var t = new Date()
-        var ts = t.toLocaleTimeString()
-        trackLogModel.append({ message: ts + " - " + msg })
-        // keep view scrolled to bottom
-        Qt.callLater(function() { trackLogView.positionViewAtEnd() })
+        trackLogModel.append({ message: msg })
+        Qt.callLater(function() { trackLogView.positionViewAtEnd() }) // keep view scrolled to bottom
     }
-
-    // optional: expose a method to append logs from C++ via context property
-    // e.g., QmlEngine->rootContext()->setContextProperty("trackingLogPage", rootObject)
 }
+

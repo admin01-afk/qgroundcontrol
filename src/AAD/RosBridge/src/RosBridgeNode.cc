@@ -4,29 +4,48 @@
 #include <QCoreApplication>
 #include <QMetaObject>
 #include <thread>
+#include <mutex>
+#include <unordered_map>
+
+#ifdef ROSBRIDGE_ENABLE_ROS
+#include "rclcpp/rclcpp.hpp"
+#include "std_srvs/srv/trigger.hpp"
+#endif
 
 // Only include ROS headers if available and enabled (for colcon/QGC build with ROS)
 #ifdef ROSBRIDGE_ENABLE_ROS
-    #include "rclcpp/rclcpp.hpp"
-    #include "std_srvs/srv/trigger.hpp"
+class RosBridgeNode::RosImpl
+{
+public:
+    std::shared_ptr<rclcpp::Node> node;
+    std::shared_ptr<rclcpp::executors::SingleThreadedExecutor> executor;
+    std::thread spinThread;
 
-    // Implementation class that holds all ROS-specific types
-    class RosBridgeNode::RosImpl
-    {
-    public:
-        std::shared_ptr<rclcpp::Node> node;
-        std::shared_ptr<rclcpp::executors::SingleThreadedExecutor> executor;
-        std::thread spinThread;
-    };
+    std::mutex clientMutex;
+    std::unordered_map<std::string, std::shared_ptr<TriggerClient>> triggerClients;
+};
 #else
-    // Stub implementation for QGC CMake build (without ROS headers)
-    class RosBridgeNode::RosImpl
-    {
-    public:
-        // Empty stub
-    };
+class RosBridgeNode::RosImpl
+{
+public:
+};
 #endif
+#ifdef ROSBRIDGE_ENABLE_ROS
+std::shared_ptr<RosBridgeNode::TriggerClient>
+RosBridgeNode::getOrCreateTriggerClient(const std::string& serviceName)
+{
+    std::lock_guard<std::mutex> lock(_impl->clientMutex);
 
+    auto it = _impl->triggerClients.find(serviceName);
+    if (it != _impl->triggerClients.end()) {
+        return it->second;
+    }
+
+    auto client = _impl->node->create_client<std_srvs::srv::Trigger>(serviceName);
+    _impl->triggerClients.emplace(serviceName, client);
+    return client;
+}
+#endif
 static RosBridgeNode* _instance = nullptr;
 
 RosBridgeNode* RosBridgeNode::instance()
@@ -95,62 +114,44 @@ RosBridgeNode::~RosBridgeNode()
 
 void RosBridgeNode::callService(const QString& serviceNameQ)
 {
-    #ifdef ROSBRIDGE_ENABLE_ROS
+#ifdef ROSBRIDGE_ENABLE_ROS
     const std::string serviceName = serviceNameQ.toStdString();
-    const int SRV_WAIT_TIMEOUT_SEC = 10;
 
-    // do the waiting + call in another std::thread so we don't block the UI thread
-    std::thread([this, serviceName]() {
-        // create client on this node (safe to create from any thread)
-        auto client = _impl->node->create_client<std_srvs::srv::Trigger>(serviceName);
+    auto client = getOrCreateTriggerClient(serviceName);
 
-        // wait for service with timeout loops (so thread is responsive)
-        using namespace std::chrono_literals;
-        rclcpp::WallRate wait_rate(1s);
-        int attempts = 0;
-        while (!client->wait_for_service(1s)) {
-            if(attempts > SRV_WAIT_TIMEOUT_SEC){ qWarning() << "RosBridgeNode: TimeOut- srv_call:" << QString::fromStdString(serviceName); return;}
-            attempts++;
-            if (attempts % 5 == 0) {
-                qDebug() << "RosBridgeNode: still waiting for service" << QString::fromStdString(serviceName);
-            }
-            // if rclcpp was shutdown, abort
-            if (!rclcpp::ok()) {
-                QMetaObject::invokeMethod(this, [this, serviceName]() {
-                    emit serviceResult(QString::fromStdString(serviceName), false, QStringLiteral("rclcpp shutdown"));
+    if (!client->wait_for_service(std::chrono::seconds(1))) {
+        // service not available: emit failure immediately
+        QMetaObject::invokeMethod(this, [this, serviceName]() {
+            emit serviceResult(QString::fromStdString(serviceName), false,
+                               QStringLiteral("service not available"));
+        }, Qt::QueuedConnection);
+        return;
+    }
+
+    auto request = std::make_shared<std_srvs::srv::Trigger::Request>();
+
+    client->async_send_request(
+        request,
+        [this, serviceName](rclcpp::Client<std_srvs::srv::Trigger>::SharedFuture future) {
+            try {
+                auto response = future.get();
+                const bool success = response->success;
+                const QString message = QString::fromStdString(response->message);
+
+                QMetaObject::invokeMethod(this, [this, serviceName, success, message]() {
+                    emit serviceResult(QString::fromStdString(serviceName), success, message);
                 }, Qt::QueuedConnection);
-                return;
+            } catch (const std::exception&) {
+                QMetaObject::invokeMethod(this, [this, serviceName]() {
+                    emit serviceResult(QString::fromStdString(serviceName), false,
+                                       QStringLiteral("service future exception"));
+                }, Qt::QueuedConnection);
             }
         }
+    );
 
-        auto request = std::make_shared<std_srvs::srv::Trigger::Request>();
-
-        // use async_send_request with callback
-        auto send_goal_future = client->async_send_request(
-            request,
-            [this, serviceName](rclcpp::Client<std_srvs::srv::Trigger>::SharedFuture future) {
-                try {
-                    auto response = future.get();
-                    const bool success = response->success;
-                    const QString message = QString::fromStdString(response->message);
-                    // emit on Qt main thread (queued)
-                    QMetaObject::invokeMethod(this, [this, serviceName, success, message]() {
-                        emit serviceResult(QString::fromStdString(serviceName), success, message);
-                    }, Qt::QueuedConnection);
-                } catch (const std::exception &e) {
-                    QMetaObject::invokeMethod(this, [this, serviceName]() {
-                        emit serviceResult(QString::fromStdString(serviceName), false,
-                                           QStringLiteral("service future exception"));
-                    }, Qt::QueuedConnection);
-                }
-            }
-        );
-
-        // don't block here — callback will emit the signal
-    }).detach();
 #else
-    // Stub: emit result immediately when ROS not available
-    qDebug() << "RosBridgeNode: ROS not available, service call stubbed:" << serviceNameQ;
+    // Stub: ROS not available
     QMetaObject::invokeMethod(this, [this, serviceNameQ]() {
         emit serviceResult(serviceNameQ, false, QStringLiteral("ROS not available in QGC build"));
     }, Qt::QueuedConnection);

@@ -4,6 +4,11 @@
 #include <QtCore/QString>
 #include <memory>
 
+#ifdef ROSBRIDGE_ENABLE_ROS
+#include <rclcpp/rclcpp.hpp>
+#include <std_srvs/srv/trigger.hpp>
+#endif
+
 class RosBridgeNode : public QObject
 {
     Q_OBJECT
@@ -37,4 +42,11 @@ private:
     // Use opaque pointers to ROS implementation to avoid MOC template instantiation issues
     class RosImpl;
     std::unique_ptr<RosImpl> _impl;
+
+#ifdef ROSBRIDGE_ENABLE_ROS
+    using TriggerClient = rclcpp::Client<std_srvs::srv::Trigger>;
+
+    std::shared_ptr<TriggerClient>
+    getOrCreateTriggerClient(const std::string& serviceName);
+#endif
 };

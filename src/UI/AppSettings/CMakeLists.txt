@@ -32,5 +32,6 @@ qt_add_qml_module(AppSettingsModule
         Kamikaze.qml
         General.qml
         Tracking.qml
+        ServiceCheckBox.qml
     NO_PLUGIN
 )

@@ -17,6 +17,10 @@
 #include "Vehicle/Vehicle.h"
 #include "FactSystem/Fact.h"
 #include <QCoreApplication>
+#include <QFile>
+#include <QFileInfo>
+#include <QStandardPaths>
+#include <QProcess>
 
 #include <functional>
 
@@ -255,47 +259,310 @@ void ServerManager::startServerSim()
         return;
     }
 
-    _serversimProcess = new QProcess(this);
-    _serversimProcess->setProcessChannelMode(QProcess::MergedChannels);
-
-    connect(_serversimProcess,
-            &QProcess::readyReadStandardOutput,
-            this, [this]() {
-
-        const QString text =
-            QString::fromUtf8(_serversimProcess->readAllStandardOutput());
-
-        for (const QString& line : text.split('\n', Qt::SkipEmptyParts))
-            appendLog(line);
-    });
-
-    connect(_serversimProcess,
-            QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished),
-            this, [this](int code, QProcess::ExitStatus status) {
-
-        appendLog(
-            QString("Server sim exited: %1 (%2)").arg(code).arg(status)
-        );
-
-        _serversimProcess->deleteLater();
-        _serversimProcess = nullptr;
+    auto fail = [this](const QString& msg) {
+        appendLog(msg);
+        if (_serversimProcess) {
+            _serversimProcess->deleteLater();
+            _serversimProcess = nullptr;
+        }
         emit serversimRunningChanged();
-    });
+    };
 
-    const QString script =
-        QDir::homePath() + "/qgroundcontrol/src/AAD/server_sim/server.py";
+    // ---- Source (read-only) location ----
+    // Prefer packaged AppImage layout: <appdir>/server_sim
+    // Fallbacks help in dev builds.
+    QStringList sourceCandidates = {
+        QCoreApplication::applicationDirPath() + "/server_sim",
+        QCoreApplication::applicationDirPath() + "/../src/AAD/server_sim",
+#ifdef QGC_SOURCE_DIR
+        QStringLiteral(QGC_SOURCE_DIR) + "/src/AAD/server_sim",
+#endif
+    };
 
-    _serversimProcess->start("python3", { script,"-gui"});
+    QString simSourceDir;
+    for (const QString& candidate : sourceCandidates) {
+        if (QDir(candidate).exists()) {
+            simSourceDir = candidate;
+            break;
+        }
+    }
 
-    if (!_serversimProcess->waitForStarted(1500)) {
-        appendLog(QString("Failed to start server sim: %1").arg(script));
-        _serversimProcess->deleteLater();
-        _serversimProcess = nullptr;
-        emit serversimRunningChanged();
+    if (simSourceDir.isEmpty()) {
+        fail("Failed to locate server_sim source directory");
         return;
     }
 
-    emit serversimRunningChanged();
+    // ---- Writable runtime location ----
+    QString dataDir = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
+    if (dataDir.isEmpty()) {
+        dataDir = QDir::homePath() + "/.local/share/" + QCoreApplication::applicationName();
+    }
+
+    QString simDataDir    = dataDir + "/server_sim";
+    QString venvDir       = simDataDir + "/venv";
+    QString venvPython    = venvDir + "/bin/python";
+    QString venvPip       = venvDir + "/bin/pip";
+    QString script        = simDataDir + "/server.py";
+    QString requirements  = simDataDir + "/requirements.txt";
+    QString depsMarker    = venvDir + "/.deps_installed";
+
+    if (!QDir().mkpath(simDataDir)) {
+        fail(QString("Failed to create writable server_sim directory: %1").arg(simDataDir));
+        return;
+    }
+
+    // ---- Copy source files into writable dir (only if missing) ----
+    auto copyIfMissing = [&](const QString& from, const QString& to) -> bool {
+        if (QFile::exists(to)) {
+            return true;
+        }
+        if (!QFile::exists(from)) {
+            appendLog(QString("Missing source file: %1").arg(from));
+            return false;
+        }
+        if (!QFile::copy(from, to)) {
+            appendLog(QString("Failed to copy %1 -> %2").arg(from, to));
+            return false;
+        }
+        return true;
+    };
+
+    if (!copyIfMissing(simSourceDir + "/server.py", script)) {
+        fail("Failed to prepare server.py");
+        return;
+    }
+    if (!copyIfMissing(simSourceDir + "/requirements.txt", requirements)) {
+        fail("Failed to prepare requirements.txt");
+        return;
+    }
+    if (!copyIfMissing(simSourceDir + "/Competition.py", simDataDir + "/Competition.py")) {
+        fail("Failed to prepare Competition.py");
+        return;
+    }
+    if (!copyIfMissing(simSourceDir + "/Contestant.py", simDataDir + "/Contestant.py")) {
+        fail("Failed to prepare Contestant.py");
+        return;
+    }
+    if (!copyIfMissing(simSourceDir + "/gui.py", simDataDir + "/gui.py")) {
+        fail("Failed to prepare gui.py");
+        return;
+    }
+
+    std::function<void(QProcess*)> installDependencies;
+
+    // Helper to launch the final server process
+    auto launchServer = [this, script, venvPython, simDataDir, installDependencies]() {
+        _serversimProcess = new QProcess(this);
+        _serversimProcess->setWorkingDirectory(simDataDir);
+        _serversimProcess->setProcessChannelMode(QProcess::MergedChannels);
+
+        connect(_serversimProcess,
+                &QProcess::readyReadStandardOutput,
+                this, [this]() {
+            const QString text = QString::fromUtf8(_serversimProcess->readAllStandardOutput());
+            for (const QString& line : text.split('\n', Qt::SkipEmptyParts)) {
+                appendLog(line);
+            }
+        });
+
+        connect(_serversimProcess,
+                QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished),
+                this, [this, installDependencies](int code, QProcess::ExitStatus) {
+
+            QString output = QString::fromUtf8(_serversimProcess->readAllStandardOutput());
+
+            if (output.contains("ModuleNotFoundError")) {
+                appendLog("Missing Python module detected, installing dependencies...");
+                QProcess* proc = new QProcess(this);
+                installDependencies(proc);
+                return;
+            }
+
+            appendLog(QString("Server sim exited: %1").arg(code));
+            _serversimProcess->deleteLater();
+            _serversimProcess = nullptr;
+            emit serversimRunningChanged();
+        });
+
+        appendLog(QString("Starting server sim: %1 %2 -gui").arg(venvPython, script));
+        _serversimProcess->start(venvPython, { script, "-gui" });
+
+        connect(_serversimProcess,
+                &QProcess::errorOccurred,
+                this, [this](QProcess::ProcessError error) {
+            if (error != QProcess::FailedToStart) {
+                return;
+            }
+            appendLog(QString("Server sim failed to start: %1").arg(_serversimProcess->errorString()));
+        });
+
+        emit serversimRunningChanged();
+    };
+
+    // Helper to install dependencies asynchronously
+    installDependencies = [this, requirements, venvPip, depsMarker, launchServer, simDataDir, simSourceDir](QProcess* proc) {
+        proc->setProcessChannelMode(QProcess::MergedChannels);
+
+        connect(proc,
+                &QProcess::readyReadStandardOutput,
+                this, [this, proc]() {
+            const QString text = QString::fromUtf8(proc->readAllStandardOutput());
+            for (const QString& line : text.split('\n', Qt::SkipEmptyParts)) {
+                appendLog(line);
+            }
+        });
+
+        connect(proc,
+                QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished),
+                this, [this, proc, requirements, venvPip, depsMarker, launchServer](int code, QProcess::ExitStatus) {
+            if (code != 0) {
+                appendLog("Failed to install Python requirements");
+                proc->deleteLater();
+                if (_serversimProcess) {
+                    _serversimProcess->deleteLater();
+                    _serversimProcess = nullptr;
+                }
+                emit serversimRunningChanged();
+                return;
+            }
+
+            QFile markerFile(depsMarker);
+            if (markerFile.open(QIODevice::WriteOnly)) {
+                markerFile.close();
+            }
+
+            proc->deleteLater();
+            appendLog("Python dependencies installed");
+            launchServer();
+        });
+
+        appendLog("Installing Python dependencies...");
+        emit errorOccurred("Server Sim Setup", "Installing Python dependencies. This may take a few minutes...");
+
+        QString wheelhouse = simSourceDir + "/wheelhouse";
+        QDir dir(wheelhouse);
+        bool hasWheels = !dir.entryList(QStringList() << "*.whl", QDir::Files).isEmpty();
+
+        // Function to install requirements
+        auto runPipInstall = [this, requirements, venvPip, launchServer, depsMarker](const QStringList& args) {
+            QProcess* pipProc = new QProcess(this);
+            pipProc->setProcessChannelMode(QProcess::MergedChannels);
+
+            connect(pipProc, &QProcess::readyReadStandardOutput, this, [this, pipProc]() {
+                const QString text = QString::fromUtf8(pipProc->readAllStandardOutput());
+                for (const QString& line : text.split('\n', Qt::SkipEmptyParts))
+                    appendLog(line);
+            });
+
+            connect(pipProc, QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished),
+                    this, [this, pipProc, launchServer, depsMarker](int exitCode, QProcess::ExitStatus) {
+                appendLog(QString("pip exited: %1").arg(exitCode));
+                pipProc->deleteLater();
+                if (exitCode == 0){
+                    QFile marker(depsMarker);
+                    if (marker.open(QIODevice::WriteOnly)) {
+                        marker.close();
+                    }
+                    launchServer();
+                }
+            });
+
+            appendLog(QString("Running: %1 %2").arg(venvPip, args.join(' ')));
+            pipProc->start(venvPip, args);
+        };
+
+        // Step 1: Try offline
+        if (hasWheels) {
+            QStringList offlineArgs { "install", "--no-index", "--find-links", wheelhouse, "-r", requirements };
+            QProcess* offlineProc = new QProcess(this);
+            offlineProc->setProcessChannelMode(QProcess::MergedChannels);
+
+            connect(offlineProc, &QProcess::readyReadStandardOutput, this, [this, offlineProc]() {
+                const QString text = QString::fromUtf8(offlineProc->readAllStandardOutput());
+                for (const QString& line : text.split('\n', Qt::SkipEmptyParts))
+                    appendLog(line);
+            });
+
+            connect(offlineProc, QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished),
+                    this, [this, requirements, venvPip, offlineProc, runPipInstall, launchServer, depsMarker](int exitCode, QProcess::ExitStatus) {
+                if (exitCode != 0) {
+                    appendLog("Offline install failed, falling back to online...");
+                    QStringList onlineArgs { "install", "-r", requirements };
+                    runPipInstall(onlineArgs);
+                } else {
+                    appendLog("Offline install succeeded");
+                    QFile marker(depsMarker);
+                    if (marker.open(QIODevice::WriteOnly)) {
+                        marker.close();
+                    }
+                    launchServer();
+                }
+                offlineProc->deleteLater();
+            });
+
+            offlineProc->start(venvPip, offlineArgs);
+        } else {
+            // No wheels: directly online
+            QStringList onlineArgs { "install", "-r", requirements };
+            runPipInstall(onlineArgs);
+        }
+    };
+
+    // Helper to create venv asynchronously
+    auto createVenv = [this, venvDir, venvPython, installDependencies](QProcess* proc) {
+        proc->setProcessChannelMode(QProcess::MergedChannels);
+
+        connect(proc,
+                &QProcess::readyReadStandardOutput,
+                this, [this, proc]() {
+            const QString text = QString::fromUtf8(proc->readAllStandardOutput());
+            for (const QString& line : text.split('\n', Qt::SkipEmptyParts)) {
+                appendLog(line);
+            }
+        });
+
+        connect(proc,
+                QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished),
+                this, [this, proc, venvPython, installDependencies](int code, QProcess::ExitStatus) {
+            if (code != 0 || !QFile::exists(venvPython)) {
+                appendLog("Failed to create Python venv");
+                proc->deleteLater();
+                if (_serversimProcess) {
+                    _serversimProcess->deleteLater();
+                    _serversimProcess = nullptr;
+                }
+                emit serversimRunningChanged();
+                return;
+            }
+
+            proc->deleteLater();
+
+            QProcess* pipProc = new QProcess(this);
+            installDependencies(pipProc);
+        });
+
+        appendLog("Creating Python virtual environment...");
+        emit errorOccurred("Server Sim Setup", "Creating Python virtual environment. This may take a minute...");
+        proc->start("python3", { "-m", "venv", venvDir });
+    };
+
+    // ---- Decide whether we need setup work ----
+    bool venvExists = QFile::exists(venvPython);
+    bool depsInstalled = QFile::exists(depsMarker);
+
+    if (!venvExists) {
+        QProcess* setupProc = new QProcess(this);
+        createVenv(setupProc);
+        return;
+    }
+
+    if (!depsInstalled) {
+        QProcess* setupProc = new QProcess(this);
+        installDependencies(setupProc);
+        return;
+    }
+
+    launchServer();
 }
 
 void ServerManager::stopServerSim()

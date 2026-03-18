@@ -5,7 +5,7 @@
 cmake_minimum_required(VERSION 3.25)
 
 include(ExternalProject)
-set(ROS_DISTRO humble)
+set(ROS_DISTRO jazzy)
 
 # ----------------------------------------------------------------------------
 # CMake Module Paths
@@ -267,6 +267,12 @@ qt_add_executable(${CMAKE_PROJECT_NAME}
     WIN32          # Windows GUI application
     MACOSX_BUNDLE  # macOS application bundle
     ${QGC_RESOURCES}
+)
+
+add_custom_command(TARGET ${CMAKE_PROJECT_NAME} POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+    ${CMAKE_SOURCE_DIR}/src/AAD/server_sim
+    $<TARGET_FILE_DIR:${CMAKE_PROJECT_NAME}>/server_sim
 )
 
 # Apply optional sanitizer instrumentation to the main target.

@@ -183,3 +183,4 @@ terrain/
 src/AAD/RosBridge/build/
 src/AAD/RosBridge/install/
 src/AAD/RosBridge/log/
+src/AAD/server_sim/wheelhouse/*

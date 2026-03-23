@@ -23,6 +23,8 @@ public:
 
     std::mutex clientMutex;
     std::unordered_map<std::string, std::shared_ptr<TriggerClient>> triggerClients;
+
+    std::atomic<int> nextRequestId{1};
 };
 #else
 class RosBridgeNode::RosImpl
@@ -112,48 +114,47 @@ RosBridgeNode::~RosBridgeNode()
 #endif
 }
 
-void RosBridgeNode::callService(const QString& serviceNameQ)
+int RosBridgeNode::callService(const QString& serviceNameQ)
 {
 #ifdef ROSBRIDGE_ENABLE_ROS
     const std::string serviceName = serviceNameQ.toStdString();
+    const int requestId = _impl->nextRequestId++;
 
     auto client = getOrCreateTriggerClient(serviceName);
 
     if (!client->wait_for_service(std::chrono::seconds(1))) {
-        // service not available: emit failure immediately
-        QMetaObject::invokeMethod(this, [this, serviceName]() {
-            emit serviceResult(QString::fromStdString(serviceName), false,
-                               QStringLiteral("service not available"));
+        QMetaObject::invokeMethod(this, [this, requestId]() {
+            emit serviceResult(requestId, false, QStringLiteral("service not available"));
         }, Qt::QueuedConnection);
-        return;
+        return requestId;
     }
 
     auto request = std::make_shared<std_srvs::srv::Trigger::Request>();
 
     client->async_send_request(
         request,
-        [this, serviceName](rclcpp::Client<std_srvs::srv::Trigger>::SharedFuture future) {
+        [this, requestId](rclcpp::Client<std_srvs::srv::Trigger>::SharedFuture future) {
+            bool success = false;
+            QString message;
             try {
                 auto response = future.get();
-                const bool success = response->success;
-                const QString message = QString::fromStdString(response->message);
-
-                QMetaObject::invokeMethod(this, [this, serviceName, success, message]() {
-                    emit serviceResult(QString::fromStdString(serviceName), success, message);
-                }, Qt::QueuedConnection);
-            } catch (const std::exception&) {
-                QMetaObject::invokeMethod(this, [this, serviceName]() {
-                    emit serviceResult(QString::fromStdString(serviceName), false,
-                                       QStringLiteral("service future exception"));
-                }, Qt::QueuedConnection);
+                success = response->success;
+                message = QString::fromStdString(response->message);
+            } catch (const std::exception& e) {
+                message = QString::fromStdString(e.what());
             }
+            QMetaObject::invokeMethod(this, [this, requestId, success, message]() {
+                emit serviceResult(requestId, success, message);
+            }, Qt::QueuedConnection);
         }
     );
+    return requestId;
 
 #else
-    // Stub: ROS not available
-    QMetaObject::invokeMethod(this, [this, serviceNameQ]() {
-        emit serviceResult(serviceNameQ, false, QStringLiteral("ROS not available in QGC build"));
+    Q_UNUSED(serviceNameQ);
+    QMetaObject::invokeMethod(this, [this]() {
+        emit serviceResult(-1, false, QStringLiteral("ROS not available in QGC build"));
     }, Qt::QueuedConnection);
+    return -1;
 #endif
 }

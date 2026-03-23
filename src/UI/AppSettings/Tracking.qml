@@ -84,8 +84,8 @@ SettingsPage {
                 ServiceCheckBox {
                     text: "GPS Track Active"
                     rosBridge: page._rosBridge
-                    serviceStart: "/start_navigation"
-                    serviceStop: "/stop_navigation"
+                    serviceStartFn: rosBridge.startNavigation
+                    serviceStopFn: rosBridge.stopNavigation
                     active: page.gpsTrackActive
                     logPrefix: "GPS_Track"
                     logFn: page.addLog
@@ -94,8 +94,8 @@ SettingsPage {
                 ServiceCheckBox {
                     text: "Visual Track Active"
                     rosBridge: page._rosBridge
-                    serviceStart: "/start_visual_track"
-                    serviceStop: "/stop_visual_track"
+                    serviceStartFn: rosBridge.startVisualTrack
+                    serviceStopFn: rosBridge.stopVisualTrack
                     active: page.visualTrackActive
                     logPrefix: "Visual_Track"
                     logFn: page.addLog
@@ -104,8 +104,8 @@ SettingsPage {
                 ServiceCheckBox {
                     text: "Yolo Active"
                     rosBridge: page._rosBridge
-                    serviceStart: "/start_yolo"
-                    serviceStop: "/stop_yolo"
+                    serviceStartFn: rosBridge.startYolo
+                    serviceStopFn: rosBridge.stopYolo
                     active: page.yoloActive
                     logPrefix: "Yolo"
                     logFn: page.addLog

@@ -21,22 +21,22 @@ public:
     ~RosBridgeNode();
 
     // have service_names here, not in qml
-    Q_INVOKABLE void startYolo() { callService("/start_yolo"); }
-    Q_INVOKABLE void stopYolo() { callService("/stop_yolo"); }
+    Q_INVOKABLE int startYolo() { return callService("/plane1/start_yolo"); }
+    Q_INVOKABLE int stopYolo() { return callService("/plane1/stop_yolo"); }
 
-    Q_INVOKABLE void startNavigation() { callService("/start_navigation"); }
-    Q_INVOKABLE void stopNavigation() {callService("/stop_navigation"); }
+    Q_INVOKABLE int startNavigation() { return callService("start_navigation"); }
+    Q_INVOKABLE int stopNavigation() { return callService("stop_navigation"); }
 
-    Q_INVOKABLE void startVisualTrack() { callService("/start_visual_track"); }
-    Q_INVOKABLE void stopVisualTrack() { callService("/stop_visual_track"); }
+    Q_INVOKABLE int startVisualTrack() { return callService("start_visual_track"); }
+    Q_INVOKABLE int stopVisualTrack() { return callService("stop_visual_track"); }
 
 
 
-    Q_INVOKABLE void callService(const QString& serviceName);
+    Q_INVOKABLE int callService(const QString& serviceName);
 
 signals:
     // emitted on Qt main thread when a service call returns
-    void serviceResult(const QString &serviceName, bool success, const QString &message);
+    void serviceResult(int requestId, bool success, const QString &message);
 
 private:
     // Use opaque pointers to ROS implementation to avoid MOC template instantiation issues

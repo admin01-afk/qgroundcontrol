@@ -1,13 +1,19 @@
 import QtQuick 2.15
 import QtQuick.Controls 2.15
+import QtQml 2.15
 
 CheckBox {
     id: root
+
     property var rosBridge
-    property string serviceStart
-    property string serviceStop
+    property var serviceStartFn
+    property var serviceStopFn
+
+    property int currentRequestId: -1
+
     property bool active: false
     property bool pending: false
+
     property var logFn
     property string logPrefix: ""
 
@@ -20,23 +26,31 @@ CheckBox {
         pending = true
 
         if (!active) {
-            rosBridge.callService(serviceStart)
+            currentRequestId = serviceStartFn()
         } else {
-            rosBridge.callService(serviceStop)
+            currentRequestId = serviceStopFn()
         }
     }
 
     Connections {
         target: root.rosBridge
-        function onServiceResult(serviceName, success, message) {
-            if (serviceName === root.serviceStart) {
-                root.pending = false
-                root.active = success
-                if (root.logFn) root.logFn(success ? root.logPrefix + " enabled" : root.logPrefix + " enable failed: " + message)
-            } else if (serviceName === root.serviceStop) {
-                root.pending = false
-                root.active = !success
-                if (root.logFn) root.logFn(success ? root.logPrefix + " enabled" : root.logPrefix + " enable failed: " + message)
+
+        function onServiceResult(requestId, success, message) {
+            if (requestId !== root.currentRequestId)
+                return
+
+            root.pending = false
+
+            if (success) {
+                root.active = !root.active
+            }
+
+            if (root.logFn) {
+                root.logFn(
+                    success
+                    ? root.logPrefix + " " + (root.active ? "enabled" : "disabled")
+                    : root.logPrefix + " failed: " + message
+                )
             }
         }
     }

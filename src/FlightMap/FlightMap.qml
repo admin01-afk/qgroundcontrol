@@ -212,7 +212,7 @@ Map {
 
         sourceItem: Image {
             id: kamikaze_icon
-            source:  "/res/qr.png"
+            source: _kamikazeLocManager.isQRparamSet ? "/res/qr_set.png" : "/res/qr_not_set.png"
             mipmap: true
             antialiasing: true
             fillMode: Image.PreserveAspectFit

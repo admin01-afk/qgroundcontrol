@@ -59,7 +59,7 @@ Item {
         {
             name: qsTr("Kamikaze"),
             url: "qrc:/qml/QGroundControl/AppSettings/Kamikaze.qml",
-            iconUrl: "qrc:/res/qr.png",
+            iconUrl: "qrc:/res/qr_set.png",
             pageVisible: function() { return QGroundControl.settingsManager.appSettings.operationMode === AppSettings.SAVASAN}
         },
         {

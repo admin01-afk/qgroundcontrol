@@ -2,16 +2,19 @@
 
 #include <QtCore/QObject>
 #include <QtCore/QString>
+#include <QtGui/QImage>
 #include <memory>
 
 #ifdef ROSBRIDGE_ENABLE_ROS
 #include <rclcpp/rclcpp.hpp>
 #include <std_srvs/srv/trigger.hpp>
+#include "sensor_msgs/msg/image.hpp"
 #endif
 
 class RosBridgeNode : public QObject
 {
     Q_OBJECT
+    Q_PROPERTY(int imageRevision READ imageRevision NOTIFY imageRevisionChanged)
 
 public:
     // singleton accessor (definition in .cc)
@@ -30,18 +33,24 @@ public:
     Q_INVOKABLE int startVisualTrack() { return callService("start_visual_track"); }
     Q_INVOKABLE int stopVisualTrack() { return callService("stop_visual_track"); }
 
-
-
     Q_INVOKABLE int callService(const QString& serviceName);
+
+    Q_INVOKABLE void subscribeImageTopic(const QString& topicName);
+    QImage latestImage() const;
+
+    int imageRevision() const { return _imageRevision; }
 
 signals:
     // emitted on Qt main thread when a service call returns
     void serviceResult(int requestId, bool success, const QString &message);
+    void imageRevisionChanged();
 
 private:
     // Use opaque pointers to ROS implementation to avoid MOC template instantiation issues
     class RosImpl;
     std::unique_ptr<RosImpl> _impl;
+
+    int _imageRevision = 0;
 
 #ifdef ROSBRIDGE_ENABLE_ROS
     using TriggerClient = rclcpp::Client<std_srvs::srv::Trigger>;

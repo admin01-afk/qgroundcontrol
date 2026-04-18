@@ -10,6 +10,8 @@
 #ifdef ROSBRIDGE_ENABLE_ROS
 #include "rclcpp/rclcpp.hpp"
 #include "std_srvs/srv/trigger.hpp"
+#include <QtGui/QImage>
+#include "sensor_msgs/msg/image.hpp"
 #endif
 
 // Only include ROS headers if available and enabled (for colcon/QGC build with ROS)
@@ -23,6 +25,10 @@ public:
 
     std::mutex clientMutex;
     std::unordered_map<std::string, std::shared_ptr<TriggerClient>> triggerClients;
+
+    std::mutex imageMutex;
+    std::shared_ptr<rclcpp::Subscription<sensor_msgs::msg::Image>> imageSub;
+    QImage latestImage;
 
     std::atomic<int> nextRequestId{1};
 };
@@ -158,3 +164,74 @@ int RosBridgeNode::callService(const QString& serviceNameQ)
     return -1;
 #endif
 }
+
+
+#ifdef ROSBRIDGE_ENABLE_ROS
+static QImage rosImageToQImage(const sensor_msgs::msg::Image& msg)
+{
+    const int w = static_cast<int>(msg.width);
+    const int h = static_cast<int>(msg.height);
+
+    if (w <= 0 || h <= 0) {
+        return QImage();
+    }
+    const auto* data = reinterpret_cast<const uchar*>(msg.data.data());
+    if (msg.encoding == "rgb8") {
+        QImage img(data, w, h, static_cast<int>(msg.step), QImage::Format_RGB888);
+        return img.copy();
+    }
+    if (msg.encoding == "bgr8") {
+        QImage img(data, w, h, static_cast<int>(msg.step), QImage::Format_BGR888);
+        return img.copy();
+    }
+    if (msg.encoding == "rgba8") {
+        QImage img(data, w, h, static_cast<int>(msg.step), QImage::Format_RGBA8888);
+        return img.copy();
+    }
+    if (msg.encoding == "bgra8") {
+        QImage img(data, w, h, static_cast<int>(msg.step), QImage::Format_ARGB32);
+        return img.copy();
+    }
+    if (msg.encoding == "mono8") {
+        QImage img(data, w, h, static_cast<int>(msg.step), QImage::Format_Grayscale8);
+        return img.copy();
+    }
+    return QImage();
+}
+
+void RosBridgeNode::subscribeImageTopic(const QString& topicName)
+{
+    if (!_impl->node || _impl->imageSub) {
+        return;
+    }
+
+    const std::string topic = topicName.toStdString();
+
+    _impl->imageSub = _impl->node->create_subscription<sensor_msgs::msg::Image>(
+        topic,
+        rclcpp::QoS(10),
+        [this](sensor_msgs::msg::Image::ConstSharedPtr msg) {
+            QImage img = rosImageToQImage(*msg);
+            if (img.isNull()) {
+                return;
+            }
+
+            {
+                std::lock_guard<std::mutex> lock(_impl->imageMutex);
+                _impl->latestImage = img;
+            }
+
+            ++_imageRevision;
+            QMetaObject::invokeMethod(this, [this]() {
+                emit imageRevisionChanged();
+            }, Qt::QueuedConnection);
+        });
+}
+
+QImage RosBridgeNode::latestImage() const
+{
+    std::lock_guard<std::mutex> lock(_impl->imageMutex);
+    return _impl->latestImage;
+}
+
+#endif

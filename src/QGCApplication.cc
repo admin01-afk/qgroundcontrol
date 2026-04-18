@@ -41,6 +41,9 @@
 #include "VehicleComponent.h"
 #include "VideoManager.h"
 
+#include "RosImageProvider.h"
+#include "RosBridgeNode.h"
+
 #ifndef QGC_NO_SERIAL_LINK
 #include "SerialLink.h"
 #endif
@@ -255,6 +258,12 @@ void QGCApplication::_initForNormalAppBoot()
     MAVLinkProtocol::instance()->init();
     MultiVehicleManager::instance()->init();
     _qmlAppEngine = QGCCorePlugin::instance()->createQmlApplicationEngine(this);
+
+    _qmlAppEngine->addImageProvider("ros", new RosImageProvider());
+    RosBridgeNode* rosBridge = RosBridgeNode::instance();
+    
+    // Expose RosBridgeNode to QML
+    _qmlAppEngine->rootContext()->setContextProperty("RosBridgeNode", rosBridge);
 
     QObject::connect(_qmlAppEngine, &QQmlApplicationEngine::objectCreationFailed, this, QCoreApplication::quit, Qt::QueuedConnection);
     QGCCorePlugin::instance()->createRootWindow(_qmlAppEngine);

@@ -49,6 +49,7 @@ Item {
     /* panel state */
     property bool panelOpen: false
     property int currentIndex: 0
+    property bool imagePanelOpen: false
     property var allPages: [
         {
             name: qsTr("Server"),
@@ -214,6 +215,83 @@ Item {
                 }
                 Text { anchors.centerIn: parent; text: qsTr("No pages"); visible: !pageLoader.active }
             }
+        }
+    }
+
+    Rectangle {
+        id: imagePanel
+        width: parent.width
+        height: Math.min(parent.height * 0.70, 700)
+        x: 0
+        y: imagePanelOpen ? parent.height - height : parent.height - 30
+        z: 50
+        color: "transparent"
+        Behavior on y { NumberAnimation { duration: 200; easing.type: Easing.OutCubic } }
+
+        ColumnLayout {
+            anchors.fill: parent
+
+            // --- Expand/Collapse Button ---
+            RowLayout {
+                Layout.fillWidth: true
+                Layout.preferredHeight: ScreenTools.defaultFontPixelHeight * 2
+
+                Button {
+                    text: imagePanelOpen ? "▼" : "▲"
+                    Layout.preferredWidth: 150
+                    anchors.centerIn: parent
+                    onClicked: imagePanelOpen = !imagePanelOpen
+                    background: Rectangle {
+                        color: qgcPal.buttonHighlight
+                        radius: 4
+                        border.color: qgcPal.buttonBorder
+                        border.width: 1
+                    }
+                    contentItem: Text {
+                        text: parent.text
+                        color: qgcPal.text
+                        horizontalAlignment: Text.AlignHCenter
+                        verticalAlignment: Text.AlignVCenter
+                        font.pixelSize: ScreenTools.defaultFontPixelHeight * 0.9
+                    }
+                }
+
+                Item { Layout.fillWidth: true }
+            }
+
+            // --- Image Display Area ---
+            Rectangle {
+                Layout.fillWidth: true
+                Layout.fillHeight: true
+                color: "black"
+                radius: 4
+
+                Image {
+                    id: rosImage
+                    anchors.fill: parent
+                    anchors.margins: 4
+                    source: "image://ros/plane1/camera/image_processed"
+                    fillMode: Image.PreserveAspectFit
+                    cache: false
+                }
+
+                Text {
+                    anchors.centerIn: parent
+                    text: "No image"
+                    color: qgcPal.text
+                    visible: rosImage.status === Image.Null || rosImage.status === Image.Error
+                    font.pixelSize: ScreenTools.defaultFontPixelHeight
+                }
+            }
+        }
+
+        Component.onCompleted: {
+            RosBridgeNode.subscribeImageTopic("/plane1/camera/image_processed")
+        }
+
+        Connections {
+            target: RosBridgeNode
+            onImageRevisionChanged: rosImage.source = "image://ros/plane1/camera/image_processed?" + Math.random()
         }
     }
 }

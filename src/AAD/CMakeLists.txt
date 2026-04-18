@@ -3,10 +3,13 @@
 # ============================================================================
 
 set(CMAKE_FIND_PACKAGE_PREFER_CONFIG ON)
+find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(std_srvs REQUIRED)
+find_package(sensor_msgs REQUIRED)
 find_package(rcl_interfaces REQUIRED)
 find_package(type_description_interfaces REQUIRED)
+find_package(rosidl_runtime_cpp REQUIRED)
 
 message(STATUS "✓ ROS 2 packages found - RosBridgeNode has full ROS 2 support")
 
@@ -23,6 +26,8 @@ target_sources(${CMAKE_PROJECT_NAME}
         kamikaze/KamikazeLocManager.cc
         kamikaze/KamikazeLocManager.h
         RosBridge/src/RosBridgeNode.h
+        RosBridge/src/RosImageProvider.cc
+        RosBridge/src/RosImageProvider.h
 )
 
 target_include_directories(${CMAKE_PROJECT_NAME}
@@ -87,8 +92,10 @@ target_include_directories(RosBridgeNode_impl
         ${CMAKE_CURRENT_SOURCE_DIR}/RosBridge/src
         ${rclcpp_INCLUDE_DIRS}
         ${std_srvs_INCLUDE_DIRS}
+        ${sensor_msgs_INCLUDE_DIRS}
         ${rcl_interfaces_INCLUDE_DIRS}
         ${type_description_interfaces_INCLUDE_DIRS}
+        ${rosidl_runtime_cpp_INCLUDE_DIRS}
         ${Qt6Core_INCLUDE_DIRS}
 )
 
@@ -98,8 +105,10 @@ target_link_libraries(RosBridgeNode_impl
     PRIVATE
         ${rclcpp_LIBRARIES}
         ${std_srvs_LIBRARIES}
+        ${sensor_msgs_LIBRARIES}
         ${rcl_interfaces_LIBRARIES}
         ${type_description_interfaces_LIBRARIES}
+        rosidl_runtime_cpp::rosidl_runtime_cpp
 )
 
 # Add the compiled object files to the main target.
@@ -113,6 +122,8 @@ target_link_libraries(${CMAKE_PROJECT_NAME}
     PRIVATE
         ${rclcpp_LIBRARIES}
         ${std_srvs_LIBRARIES}
+        ${sensor_msgs_LIBRARIES}
         ${rcl_interfaces_LIBRARIES}
         ${type_description_interfaces_LIBRARIES}
+        rosidl_runtime_cpp::rosidl_runtime_cpp
 )

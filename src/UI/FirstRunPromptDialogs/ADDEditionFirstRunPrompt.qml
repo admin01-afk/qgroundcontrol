@@ -14,7 +14,13 @@ FirstRunPrompt {
         spacing: ScreenTools.defaultFontPixelHeight
 
         QGCLabel {
-            text: qsTr("<for future modifications to UI, may put user needed info here>")
+            text: qsTr(
+`P: panel toggle
+1-4: change tab in panel
+
+Space: camera feed toggle
+Shift+Space: maximize/minimize image`
+            )
             wrapMode: Text.WordWrap
             Layout.fillWidth: true
         }

@@ -233,25 +233,6 @@ Map {
         }
     }
 
-    // Get HSS
-    QGCButton {
-        text: qsTr("Get HSS")
-        z: 10000
-        width: 100
-        primary: true
-        visible: QGroundControl.settingsManager.appSettings.operationMode === AppSettings.SAVASAN
-
-        anchors {
-            bottom: parent.bottom
-            left: parent.left
-            margins: 10
-        }
-
-        onClicked: {
-            _map._serverManager.getHSS()
-        }
-    }
-
     function setVisibleRegion(region) {
         // TODO: Is this still necessary with Qt 5.11?
         // This works around a bug on Qt where if you set a visibleRegion and then the user moves or zooms the map

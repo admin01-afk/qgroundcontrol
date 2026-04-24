@@ -50,6 +50,7 @@ Item {
     property bool panelOpen: false
     property int currentIndex: 0
     property bool imagePanelOpen: false
+    property bool imagePanelMaximized: false
     property var allPages: [
         {
             name: qsTr("Server"),
@@ -80,8 +81,33 @@ Item {
     QGCPalette { id: qgcPal; colorGroupEnabled: root.enabled }
 
     Shortcut {
+        id: shiftSpaceShortcut
+        sequence: "Shift+Space"
+        context: Qt.ApplicationShortcut
+
+        onActivated: {
+            if (Qt.focusItem && Qt.focusItem.cursorPosition !== undefined) {
+                return
+            }
+            if(!imagePanelMaximized){ imagePanelOpen = true }
+            imagePanelMaximized = !imagePanelMaximized
+        }
+    }
+    Shortcut {
         id: spaceShortcut
         sequence: "Space"
+        context: Qt.ApplicationShortcut // Make it application-wide so other focused items don't swallow it
+        onActivated: {
+            if (Qt.focusItem && Qt.focusItem.cursorPosition !== undefined) {
+                // user is typing: ignore spacebar toggle
+                return
+            }
+            imagePanelOpen = !imagePanelOpen
+        }
+    }
+    Shortcut {
+        id: pShortcut
+        sequence: "P"
         context: Qt.ApplicationShortcut // Make it application-wide so other focused items don't swallow it
         onActivated: {
             if (Qt.focusItem && Qt.focusItem.cursorPosition !== undefined) {
@@ -220,13 +246,16 @@ Item {
 
     Rectangle {
         id: imagePanel
-        width: parent.width
-        height: Math.min(parent.height * 0.70, 700)
-        x: 0
-        y: imagePanelOpen ? parent.height - height : parent.height - 30
+        anchors.left: parent.left
+        anchors.bottom: parent.bottom
+        
+        width:  (imagePanelMaximized) ? parent.width : parent.width * 0.40
+        height: (imagePanelMaximized) ? parent.height : parent.height * 0.45
+        
         z: 50
         color: "transparent"
-        Behavior on y { NumberAnimation { duration: 200; easing.type: Easing.OutCubic } }
+        anchors.bottomMargin: imagePanelOpen ? 0 : -(height - 30)
+        Behavior on anchors.bottomMargin { NumberAnimation { duration: 200; easing.type: Easing.OutCubic } }
 
         ColumnLayout {
             anchors.fill: parent
@@ -270,7 +299,7 @@ Item {
                     id: rosImage
                     anchors.fill: parent
                     anchors.margins: 4
-                    source: "image://ros/plane1/camera/image_processed"
+                    source: "image://ros/plane1/image_processed"
                     fillMode: Image.PreserveAspectFit
                     cache: false
                 }
@@ -286,12 +315,12 @@ Item {
         }
 
         Component.onCompleted: {
-            RosBridgeNode.subscribeImageTopic("/plane1/camera/image_processed")
+            RosBridgeNode.subscribeImageTopic("/plane1/image_processed")
         }
 
         Connections {
             target: RosBridgeNode
-            onImageRevisionChanged: rosImage.source = "image://ros/plane1/camera/image_processed?" + Math.random()
+            onImageRevisionChanged: rosImage.source = "image://ros/plane1/image_processed?" + Math.random()
         }
     }
 }

@@ -38,6 +38,9 @@ public:
     Q_INVOKABLE void subscribeImageTopic(const QString& topicName);
     QImage latestImage() const;
 
+    // Publish KonumBilgileri array to ROS topic
+    void publishKonumBilgileri(const QJsonArray& konumArray);
+
     int imageRevision() const { return _imageRevision; }
 
 signals:

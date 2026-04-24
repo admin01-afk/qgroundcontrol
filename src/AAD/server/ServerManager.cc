@@ -21,6 +21,7 @@
 #include <QFileInfo>
 #include <QStandardPaths>
 #include <QProcess>
+#include "RosBridge/src/RosBridgeNode.h"
 
 #include <functional>
 
@@ -686,8 +687,12 @@ void ServerManager::_telemLoop()
         {
             if (!obj.contains("konum_bilgileri")) return;
 
+            // Publish to ROS topic
+            QJsonArray konumArray = obj["konum_bilgileri"].toArray();
+            RosBridgeNode::instance()->publishKonumBilgileri(konumArray);
+
             QSet<int> seen;
-            for (const auto& v : obj["konum_bilgileri"].toArray()) {
+            for (const auto& v : konumArray) {
                 QJsonObject o = v.toObject();
                 int id = o["takim_numarasi"].toInt();
                 seen.insert(id);

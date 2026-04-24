@@ -12,6 +12,10 @@
 #include "std_srvs/srv/trigger.hpp"
 #include <QtGui/QImage>
 #include "sensor_msgs/msg/image.hpp"
+#include "savasan_general/msg/konum_bilgileri.hpp"
+#include "savasan_general/msg/konum_bilgisi.hpp"
+#include <QJsonArray>
+#include <QJsonObject>
 #endif
 
 // Only include ROS headers if available and enabled (for colcon/QGC build with ROS)
@@ -29,6 +33,8 @@ public:
     std::mutex imageMutex;
     std::shared_ptr<rclcpp::Subscription<sensor_msgs::msg::Image>> imageSub;
     QImage latestImage;
+
+    std::shared_ptr<rclcpp::Publisher<savasan_general::msg::KonumBilgileri>> konumPub;
 
     std::atomic<int> nextRequestId{1};
 };
@@ -232,6 +238,46 @@ QImage RosBridgeNode::latestImage() const
 {
     std::lock_guard<std::mutex> lock(_impl->imageMutex);
     return _impl->latestImage;
+}
+
+void RosBridgeNode::publishKonumBilgileri(const QJsonArray& konumArray)
+{
+    if (!_impl->node || konumArray.isEmpty()) {
+        return;
+    }
+
+    // Lazily create publisher on first use
+    if (!_impl->konumPub) {
+        _impl->konumPub = _impl->node->create_publisher<savasan_general::msg::KonumBilgileri>(
+            "/konum_bilgileri",
+            rclcpp::QoS(10)
+        );
+    }
+
+    auto msg = std::make_unique<savasan_general::msg::KonumBilgileri>();
+    msg->konum_bilgileri.reserve(konumArray.size());
+
+    for (const auto& item : konumArray) {
+        if (!item.isObject()) {
+            continue;
+        }
+        QJsonObject obj = item.toObject();
+
+        savasan_general::msg::KonumBilgisi bilgi;
+        bilgi.takim_numarasi = obj["takim_numarasi"].toInt(0);
+        bilgi.iha_enlem = obj["iha_enlem"].toDouble(0.0);
+        bilgi.iha_boylam = obj["iha_boylam"].toDouble(0.0);
+        bilgi.iha_irtifa = obj["iha_irtifa"].toDouble(0.0);
+        bilgi.iha_dikilme = obj["iha_dikilme"].toDouble(0.0);
+        bilgi.iha_yonelme = obj["iha_yonelme"].toDouble(0.0);
+        bilgi.iha_yatis = obj["iha_yatis"].toDouble(0.0);
+        bilgi.iha_hiz = obj["iha_hizi"].toDouble(0.0);
+        bilgi.iha_zamanfarki = obj["zaman_farki"].toInt(0);
+
+        msg->konum_bilgileri.push_back(bilgi);
+    }
+
+    _impl->konumPub->publish(*msg);
 }
 
 #endif

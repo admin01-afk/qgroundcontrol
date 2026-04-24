@@ -10,6 +10,7 @@ find_package(sensor_msgs REQUIRED)
 find_package(rcl_interfaces REQUIRED)
 find_package(type_description_interfaces REQUIRED)
 find_package(rosidl_runtime_cpp REQUIRED)
+find_package(savasan_general REQUIRED)
 
 message(STATUS "✓ ROS 2 packages found - RosBridgeNode has full ROS 2 support")
 
@@ -70,7 +71,7 @@ add_dependencies(${CMAKE_PROJECT_NAME} server_sim_wheels)
 # RosBridgeNode Implementation - ROS 2 Required
 # ============================================================================
 
-add_library(RosBridgeNode_impl OBJECT
+add_library(RosBridgeNode_impl STATIC
     RosBridge/src/RosBridgeNode.cc
 )
 
@@ -96,25 +97,29 @@ target_include_directories(RosBridgeNode_impl
         ${rcl_interfaces_INCLUDE_DIRS}
         ${type_description_interfaces_INCLUDE_DIRS}
         ${rosidl_runtime_cpp_INCLUDE_DIRS}
+        ${savasan_general_INCLUDE_DIRS}
         ${Qt6Core_INCLUDE_DIRS}
+)
+
+ament_target_dependencies(RosBridgeNode_impl
+    rclcpp
+    std_srvs
+    sensor_msgs
+    rcl_interfaces
+    type_description_interfaces
+    rosidl_runtime_cpp
+    savasan_general
 )
 
 # rclcpp carries the ROS runtime link requirements; the interface packages are
 # used for headers and generated service types.
 target_link_libraries(RosBridgeNode_impl
-    PRIVATE
-        ${rclcpp_LIBRARIES}
-        ${std_srvs_LIBRARIES}
-        ${sensor_msgs_LIBRARIES}
-        ${rcl_interfaces_LIBRARIES}
-        ${type_description_interfaces_LIBRARIES}
-        rosidl_runtime_cpp::rosidl_runtime_cpp
-)
-
-# Add the compiled object files to the main target.
-target_sources(${CMAKE_PROJECT_NAME}
-    PRIVATE
-        $<TARGET_OBJECTS:RosBridgeNode_impl>
+    ${rclcpp_LIBRARIES}
+    ${std_srvs_LIBRARIES}
+    ${sensor_msgs_LIBRARIES}
+    ${rcl_interfaces_LIBRARIES}
+    ${type_description_interfaces_LIBRARIES}
+    rosidl_runtime_cpp::rosidl_runtime_cpp
 )
 
 # Final link against rclcpp for the main executable.
@@ -126,4 +131,10 @@ target_link_libraries(${CMAKE_PROJECT_NAME}
         ${rcl_interfaces_LIBRARIES}
         ${type_description_interfaces_LIBRARIES}
         rosidl_runtime_cpp::rosidl_runtime_cpp
+)
+
+# Add the compiled object files to the main target.
+target_link_libraries(${CMAKE_PROJECT_NAME}
+    PRIVATE
+        RosBridgeNode_impl
 )

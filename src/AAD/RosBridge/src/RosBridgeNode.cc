@@ -14,6 +14,8 @@
 #include "sensor_msgs/msg/image.hpp"
 #include "savasan_general/msg/konum_bilgileri.hpp"
 #include "savasan_general/msg/konum_bilgisi.hpp"
+#include "savasan_general/msg/guidance_command.hpp"
+#include "savasan_general/msg/guidance_info.hpp"
 #include <QJsonArray>
 #include <QJsonObject>
 #endif
@@ -33,6 +35,10 @@ public:
     std::mutex imageMutex;
     std::shared_ptr<rclcpp::Subscription<sensor_msgs::msg::Image>> imageSub;
     QImage latestImage;
+
+    // Guidance
+    rclcpp::Subscription<savasan_general::msg::GuidanceInfo>::SharedPtr guidanceInfoSub;
+    rclcpp::Publisher<savasan_general::msg::GuidanceCommand>::SharedPtr guidanceCmdPub;
 
     std::shared_ptr<rclcpp::Publisher<savasan_general::msg::KonumBilgileri>> konumPub;
 
@@ -84,6 +90,17 @@ RosBridgeNode::RosBridgeNode(QObject* parent)
 
     // make a node owned by this object
     _impl->node = std::make_shared<rclcpp::Node>("RosBridgeNode_qgc");
+
+    _impl->guidanceInfoSub = _impl->node->create_subscription<savasan_general::msg::GuidanceInfo>(
+        "guidance/info",
+        rclcpp::QoS(10),
+        [this](savasan_general::msg::GuidanceInfo::SharedPtr msg) {
+            this->guidanceInfoCallback(msg);
+        }
+    );
+
+    _impl->guidanceCmdPub = _impl->node->create_publisher<savasan_general::msg::GuidanceCommand>(
+        "guidance/command", rclcpp::QoS(10));
 
     // executor to spin the node in the background
     _impl->executor = std::make_shared<rclcpp::executors::SingleThreadedExecutor>();
@@ -278,6 +295,71 @@ void RosBridgeNode::publishKonumBilgileri(const QJsonArray& konumArray)
     }
 
     _impl->konumPub->publish(*msg);
+}
+
+void RosBridgeNode::guidanceInfoCallback(savasan_general::msg::GuidanceInfo::SharedPtr msg){
+    qDebug() << "GuidanceInfo received";
+
+    // Update current mode
+    if (_currentMode != QString::fromStdString(msg->current_mode)) {
+        _currentMode = QString::fromStdString(msg->current_mode);
+        QMetaObject::invokeMethod(this, [this]() {
+            emit currentModeChanged();
+        }, Qt::QueuedConnection);
+    }
+
+    // Update mode lock
+    if (_modeLock != msg->mode_lock) {
+        _modeLock = msg->mode_lock;
+        QMetaObject::invokeMethod(this, [this]() {
+            emit modeLockChanged();
+        }, Qt::QueuedConnection);
+    }
+
+    // Update method names and auths
+    QStringList newMethodNames;
+    QList<bool> newMethodAuths;
+
+    for (const auto& name : msg->method_names) {
+        newMethodNames.append(QString::fromStdString(name));
+    }
+    for (bool auth : msg->method_auths) {
+        newMethodAuths.append(auth);
+    }
+
+    if (_methodNames != newMethodNames) {
+        _methodNames = newMethodNames;
+        QMetaObject::invokeMethod(this, [this]() {
+            emit methodNamesChanged();
+        }, Qt::QueuedConnection);
+    }
+
+    if (_methodAuths != newMethodAuths) {
+        _methodAuths = newMethodAuths;
+        QMetaObject::invokeMethod(this, [this]() {
+            emit methodAuthsChanged();
+        }, Qt::QueuedConnection);
+    }
+}
+
+void RosBridgeNode::sendGuidanceCommand(int command, bool force)
+{
+#ifdef ROSBRIDGE_ENABLE_ROS
+    if (!_impl->node || !_impl->guidanceCmdPub) {
+        return;
+    }
+
+    auto msg = std::make_unique<savasan_general::msg::GuidanceCommand>();
+    msg->command = static_cast<uint8_t>(command);
+    msg->force = force;
+
+    _impl->guidanceCmdPub->publish(*msg);
+    qDebug() << "GuidanceCommand sent: command=" << command << ", force=" << force;
+#else
+    Q_UNUSED(command);
+    Q_UNUSED(force);
+    qDebug() << "ROS not available - GuidanceCommand not sent";
+#endif
 }
 
 #endif

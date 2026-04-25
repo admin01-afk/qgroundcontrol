@@ -30,21 +30,35 @@ Item {
     property string _messageText:           ""
     property real   _toolsMargin:           ScreenTools.defaultFontPixelWidth * 3
 
+    /**
+     * Calculate tool insets based on panel states
+     * These tell the map what screen areas are occupied by UI so it doesn't pan under them
+     * minimized image panel is occupied, panel and maximized imagePanel ignored
+     */
     QGCToolInsets {
         id:                     _totalToolInsets
+        // Inherit parent insets
         leftEdgeTopInset:       parentToolInsets.leftEdgeTopInset
-        leftEdgeCenterInset:    0
-        leftEdgeBottomInset:    parentToolInsets.leftEdgeBottomInset
+        leftEdgeCenterInset:    parentToolInsets.leftEdgeCenterInset
+        leftEdgeBottomInset:    parentToolInsets.leftEdgeBottomInset + (imagePanelOpen && !imagePanelMaximized ? imagePanel.width : 0)
+
         rightEdgeTopInset:      parentToolInsets.rightEdgeTopInset
         rightEdgeCenterInset:   parentToolInsets.rightEdgeCenterInset
-        rightEdgeBottomInset:   0
+        rightEdgeBottomInset:   parentToolInsets.rightEdgeBottomInset
+
         topEdgeLeftInset:       parentToolInsets.topEdgeLeftInset
-        topEdgeCenterInset:     0
+        topEdgeCenterInset:     parentToolInsets.topEdgeCenterInset
         topEdgeRightInset:      parentToolInsets.topEdgeRightInset
-        bottomEdgeLeftInset:    parentToolInsets.bottomEdgeLeftInset
-        bottomEdgeCenterInset:  parentToolInsets.bottomEdgeCenterInset
-        bottomEdgeRightInset:   0
+
+        bottomEdgeLeftInset:    parentToolInsets.bottomEdgeLeftInset + (imagePanelOpen && !imagePanelMaximized ? imagePanel.height : 0)
+        bottomEdgeCenterInset:  parentToolInsets.bottomEdgeCenterInset + (imagePanelOpen && !imagePanelMaximized ? imagePanel.height : 0)
+        bottomEdgeRightInset:   parentToolInsets.bottomEdgeRightInset
     }
+
+    /**
+     * Public property to expose calculated tool insets to FlyView
+     */
+    readonly property var totalToolInsets: _totalToolInsets
 
     /* panel state */
     property bool panelOpen: false
@@ -75,6 +89,12 @@ Item {
             url: "qrc:/qml/QGroundControl/AppSettings/Tracking.qml",
             iconUrl: "qrc:/InstrumentValueIcons/target.svg",
             pageVisible: function() { return QGroundControl.settingsManager.appSettings.operationMode === AppSettings.SAVASAN}
+        },
+        {
+            name: qsTr("Guidance"),
+            url: "qrc:/qml/QGroundControl/AppSettings/Guidance.qml",
+            iconUrl: "qrc:/InstrumentValueIcons/target.svg",
+            pageVisible: true
         }
     ]
 
@@ -248,10 +268,10 @@ Item {
         id: imagePanel
         anchors.left: parent.left
         anchors.bottom: parent.bottom
-        
+
         width:  (imagePanelMaximized) ? parent.width : parent.width * 0.40
         height: (imagePanelMaximized) ? parent.height : parent.height * 0.45
-        
+
         z: 50
         color: "transparent"
         anchors.bottomMargin: imagePanelOpen ? 0 : -(height - 30)

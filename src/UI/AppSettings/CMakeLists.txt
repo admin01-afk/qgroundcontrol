@@ -30,6 +30,7 @@ qt_add_qml_module(AppSettingsModule
         VideoSettings.qml
         Server.qml
         Kamikaze.qml
+        Guidance.qml
         General.qml
         Tracking.qml
         ServiceCheckBox.qml

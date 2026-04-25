@@ -16,6 +16,9 @@
 #include "savasan_general/msg/konum_bilgisi.hpp"
 #include "savasan_general/msg/guidance_command.hpp"
 #include "savasan_general/msg/guidance_info.hpp"
+#include "savasan_general/msg/no_fly_zone_array.hpp"
+#include "savasan_general/msg/no_fly_zone.hpp"
+#include "mavros_msgs/srv/command_long.hpp"
 #include <QJsonArray>
 #include <QJsonObject>
 #endif
@@ -31,6 +34,7 @@ public:
 
     std::mutex clientMutex;
     std::unordered_map<std::string, std::shared_ptr<TriggerClient>> triggerClients;
+    std::unordered_map<std::string, std::shared_ptr<CommandLongClient>> commandLongClients;
 
     std::mutex imageMutex;
     std::shared_ptr<rclcpp::Subscription<sensor_msgs::msg::Image>> imageSub;
@@ -41,8 +45,10 @@ public:
     rclcpp::Publisher<savasan_general::msg::GuidanceCommand>::SharedPtr guidanceCmdPub;
 
     std::shared_ptr<rclcpp::Publisher<savasan_general::msg::KonumBilgileri>> konumPub;
+    std::shared_ptr<rclcpp::Publisher<savasan_general::msg::NoFlyZoneArray>> nfzPub;
 
     std::atomic<int> nextRequestId{1};
+    std::atomic<int> nextGeofenceId{1};
 };
 #else
 class RosBridgeNode::RosImpl
@@ -63,6 +69,21 @@ RosBridgeNode::getOrCreateTriggerClient(const std::string& serviceName)
 
     auto client = _impl->node->create_client<std_srvs::srv::Trigger>(serviceName);
     _impl->triggerClients.emplace(serviceName, client);
+    return client;
+}
+
+std::shared_ptr<RosBridgeNode::CommandLongClient>
+RosBridgeNode::getOrCreateCommandLongClient(const std::string& serviceName)
+{
+    std::lock_guard<std::mutex> lock(_impl->clientMutex);
+
+    auto it = _impl->commandLongClients.find(serviceName);
+    if (it != _impl->commandLongClients.end()) {
+        return it->second;
+    }
+
+    auto client = _impl->node->create_client<mavros_msgs::srv::CommandLong>(serviceName);
+    _impl->commandLongClients.emplace(serviceName, client);
     return client;
 }
 #endif
@@ -295,6 +316,137 @@ void RosBridgeNode::publishKonumBilgileri(const QJsonArray& konumArray)
     }
 
     _impl->konumPub->publish(*msg);
+}
+
+void RosBridgeNode::publishNoFlyZones(const QJsonArray& hssArray)
+{
+#ifdef ROSBRIDGE_ENABLE_ROS
+    if (!_impl->node || hssArray.isEmpty()) {
+        return;
+    }
+
+    // Lazily create publisher on first use
+    if (!_impl->nfzPub) {
+        _impl->nfzPub = _impl->node->create_publisher<savasan_general::msg::NoFlyZoneArray>(
+            "nfz_areas",
+            rclcpp::QoS(10)
+        );
+    }
+
+    auto nfz_array_msg = std::make_unique<savasan_general::msg::NoFlyZoneArray>();
+
+    for (const auto& item : hssArray) {
+        if (!item.isObject()) {
+            continue;
+        }
+        QJsonObject obj = item.toObject();
+
+        savasan_general::msg::NoFlyZone nfz_msg;
+        nfz_msg.latitude = obj["hssEnlem"].toDouble(0.0);
+        nfz_msg.longitude = obj["hssBoylam"].toDouble(0.0);
+        nfz_msg.radius = obj["hssYaricap"].toDouble(0.0);
+
+        nfz_array_msg->zones.push_back(nfz_msg);
+    }
+
+    _impl->nfzPub->publish(*nfz_array_msg);
+    qDebug() << "Published" << static_cast<int>(nfz_array_msg->zones.size()) << "no-fly zones";
+
+    // Clear existing geofences first
+    clearGeofences();
+
+    // Upload new geofences
+    for (const auto& zone : nfz_array_msg->zones) {
+        uploadGeofence(zone.latitude, zone.longitude, zone.radius);
+    }
+#endif
+}
+
+void RosBridgeNode::clearGeofences()
+{
+#ifdef ROSBRIDGE_ENABLE_ROS
+    if (!_impl->node) {
+        return;
+    }
+
+    auto client = getOrCreateCommandLongClient("/plane1/mavros/cmd/command");
+
+    if (!client->wait_for_service(std::chrono::seconds(2))) {
+        qWarning() << "MAVROS command service unavailable";
+        return;
+    }
+
+    auto request = std::make_shared<mavros_msgs::srv::CommandLong::Request>();
+    request->command = 402;  // MAV_CMD_NAV_FENCE_CLEAR_ALL
+    request->param1 = 0.0;
+    request->param2 = 0.0;
+    request->param3 = 0.0;
+    request->param4 = 0.0;
+    request->param5 = 0.0;
+    request->param6 = 0.0;
+    request->param7 = 0.0;
+
+    client->async_send_request(
+        request,
+        [this](rclcpp::Client<mavros_msgs::srv::CommandLong>::SharedFuture future) {
+            try {
+                auto response = future.get();
+                if (response->success) {
+                    qInfo() << "Cleared all existing geofences";
+                } else {
+                    qWarning() << "Failed to clear geofences";
+                }
+            } catch (const std::exception& e) {
+                qWarning() << "Error clearing geofences:" << e.what();
+            }
+        }
+    );
+#endif
+}
+
+void RosBridgeNode::uploadGeofence(double latitude, double longitude, double radius)
+{
+#ifdef ROSBRIDGE_ENABLE_ROS
+    if (!_impl->node) {
+        return;
+    }
+
+    auto client = getOrCreateCommandLongClient("/plane1/mavros/cmd/command");
+
+    if (!client->wait_for_service(std::chrono::seconds(2))) {
+        qWarning() << "MAVROS command service unavailable";
+        return;
+    }
+
+    auto request = std::make_shared<mavros_msgs::srv::CommandLong::Request>();
+    request->command = 5004;  // NAV_FENCE_CIRCLE_EXCLUSION
+    request->param1 = radius;  // No-Fly Zone radius in meters
+    request->param2 = 0.0;
+    request->param3 = 0.0;
+    request->param4 = 0.0;
+    request->param5 = latitude;   // Latitude
+    request->param6 = longitude;  // Longitude
+    request->param7 = 0.0;
+
+    int geofenceId = _impl->nextGeofenceId++;
+
+    client->async_send_request(
+        request,
+        [this, geofenceId, latitude, longitude, radius](rclcpp::Client<mavros_msgs::srv::CommandLong>::SharedFuture future) {
+            try {
+                auto response = future.get();
+                if (response->success) {
+                    qInfo() << QString("Geofence %1 uploaded: Lat=%2, Lon=%3, Radius=%4m")
+                                .arg(geofenceId).arg(latitude).arg(longitude).arg(radius);
+                } else {
+                    qWarning() << QString("Failed to upload geofence %1").arg(geofenceId);
+                }
+            } catch (const std::exception& e) {
+                qWarning() << QString("Error uploading geofence %1: %2").arg(geofenceId).arg(e.what());
+            }
+        }
+    );
+#endif
 }
 
 void RosBridgeNode::guidanceInfoCallback(savasan_general::msg::GuidanceInfo::SharedPtr msg){

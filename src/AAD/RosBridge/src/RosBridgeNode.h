@@ -10,6 +10,8 @@
 #include <std_srvs/srv/trigger.hpp>
 #include "sensor_msgs/msg/image.hpp"
 #include "savasan_general/msg/guidance_info.hpp"
+#include "savasan_general/msg/no_fly_zone.hpp"
+#include "mavros_msgs/srv/command_long.hpp"
 #endif
 
 class RosBridgeNode : public QObject
@@ -46,6 +48,9 @@ public:
     // Publish KonumBilgileri array to ROS topic
     void publishKonumBilgileri(const QJsonArray& konumArray);
 
+    // Publish No-Fly Zones to ROS topic and upload geofences to UAV
+    void publishNoFlyZones(const QJsonArray& hssArray);
+
     // Send guidance command to ROS topic
     Q_INVOKABLE void sendGuidanceCommand(int command, bool force = false);
 
@@ -77,9 +82,17 @@ private:
 
 #ifdef ROSBRIDGE_ENABLE_ROS
     using TriggerClient = rclcpp::Client<std_srvs::srv::Trigger>;
+    using CommandLongClient = rclcpp::Client<mavros_msgs::srv::CommandLong>;
 
     std::shared_ptr<TriggerClient>
     getOrCreateTriggerClient(const std::string& serviceName);
+
+    std::shared_ptr<CommandLongClient>
+    getOrCreateCommandLongClient(const std::string& serviceName);
+
+    void clearGeofences();
+    void uploadGeofence(double latitude, double longitude, double radius);
+    void geofenceResponseCallback(int geofenceId, bool isClear);
 
     void guidanceInfoCallback(savasan_general::msg::GuidanceInfo::SharedPtr msg);
 #endif

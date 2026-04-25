@@ -819,6 +819,10 @@ void ServerManager::getHSS()
 
             QJsonArray arr = obj["hss_koordinat_bilgileri"].toArray();
             if (arr.isEmpty()) {emit errorOccurred("Warning\n getting HSS","Server returned empty HSS list"); emit hssListChanged(); return;}
+
+            // Publish to ROS and upload geofences
+            RosBridgeNode::instance()->publishNoFlyZones(arr);
+
             for (const QJsonValue& v : arr) {
                 if (!v.isObject()) {
                     emit errorOccurred("Error getting HSS", "Invalid HSS entry (not object)");

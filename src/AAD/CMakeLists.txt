@@ -10,6 +10,7 @@ find_package(sensor_msgs REQUIRED)
 find_package(rcl_interfaces REQUIRED)
 find_package(type_description_interfaces REQUIRED)
 find_package(rosidl_runtime_cpp REQUIRED)
+find_package(mavros_msgs REQUIRED)
 find_package(savasan_general REQUIRED)
 
 message(STATUS "✓ ROS 2 packages found - RosBridgeNode has full ROS 2 support")
@@ -108,6 +109,7 @@ ament_target_dependencies(RosBridgeNode_impl
     rcl_interfaces
     type_description_interfaces
     rosidl_runtime_cpp
+    mavros_msgs
     savasan_general
 )
 

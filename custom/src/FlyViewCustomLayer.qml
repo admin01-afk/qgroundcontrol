@@ -181,6 +181,11 @@ Item {
         color: qgcPal.windowShadeDark
         Behavior on y { NumberAnimation { duration: 200; easing.type: Easing.OutCubic } }
 
+        // Prevent wheel events from propagating to map
+        WheelHandler {
+            acceptedDevices: PointerDevice.Mouse | PointerDevice.TouchPad
+        }
+
         ColumnLayout {
             anchors.fill: parent
             anchors.margins: 8
@@ -276,6 +281,11 @@ Item {
         color: "transparent"
         anchors.bottomMargin: imagePanelOpen ? 0 : -(height - 30)
         Behavior on anchors.bottomMargin { NumberAnimation { duration: 200; easing.type: Easing.OutCubic } }
+
+        // Prevent wheel events from propagating to map
+        WheelHandler {
+            acceptedDevices: PointerDevice.Mouse | PointerDevice.TouchPad
+        }
 
         ColumnLayout {
             anchors.fill: parent

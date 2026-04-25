@@ -41,8 +41,9 @@ SettingsPage {
                     }
                     QGCLabel {
                         text: page._rosBridge.currentMode
-                        color: qgcPal.highlight
+                        color: qgcPal.buttonHighlightText
                         font.italic: true
+                        font.bold: true
                         Layout.fillWidth: true
                     }
                 }
@@ -81,7 +82,7 @@ SettingsPage {
                     spacing: ScreenTools.defaultFontPixelHeight * 0.3
 
                     QGCLabel {
-                        text: qsTr("Available Methods:")
+                        text: qsTr("Method Names:")
                         font.bold: true
                         color: qgcPal.text
                     }
@@ -110,7 +111,7 @@ SettingsPage {
                                         width: ScreenTools.defaultFontPixelHeight
                                         height: ScreenTools.defaultFontPixelHeight
                                         radius: 2
-                                        color: page._rosBridge.methodAuths[index] ? qgcPal.highlight : qgcPal.windowShade
+                                        color: page._rosBridge.methodAuths[index] ? qgcPal.buttonHighlight : qgcPal.windowShade
                                         border.color: qgcPal.text
                                         border.width: 1
 
@@ -118,8 +119,8 @@ SettingsPage {
                                             anchors.centerIn: parent
                                             text: page._rosBridge.methodAuths[index] ? "✓" : "✗"
                                             font.bold: true
-                                            color: qgcPal.buttonText
-                                            font.pixelSize: ScreenTools.smallFontPixelSize
+                                            color: page._rosBridge.methodAuths[index] ? qgcPal.buttonText : qgcPal.colorRed
+                                            font.pixelSize: ScreenTools.smallFontPointSize
                                         }
                                     }
 

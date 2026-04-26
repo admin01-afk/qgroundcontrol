@@ -3,6 +3,7 @@
 # ============================================================================
 
 set(CMAKE_FIND_PACKAGE_PREFER_CONFIG ON)
+find_package(Qt6 REQUIRED COMPONENTS Core Positioning Network)
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(std_srvs REQUIRED)
@@ -99,7 +100,6 @@ target_include_directories(RosBridgeNode_impl
         ${type_description_interfaces_INCLUDE_DIRS}
         ${rosidl_runtime_cpp_INCLUDE_DIRS}
         ${savasan_general_INCLUDE_DIRS}
-        ${Qt6Core_INCLUDE_DIRS}
 )
 
 ament_target_dependencies(RosBridgeNode_impl
@@ -122,6 +122,9 @@ target_link_libraries(RosBridgeNode_impl
     ${rcl_interfaces_LIBRARIES}
     ${type_description_interfaces_LIBRARIES}
     rosidl_runtime_cpp::rosidl_runtime_cpp
+    Qt6::Core
+    Qt6::Positioning
+    Qt6::Network
 )
 
 # Final link against rclcpp for the main executable.

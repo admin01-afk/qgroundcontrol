@@ -1,11 +1,16 @@
 #include "RosBridgeNode.h"
 
+#include "server/ServerManager.h"
+#include <QNetworkAccessManager>
+#include <QJsonDocument>
+
 #include <QDebug>
 #include <QCoreApplication>
 #include <QMetaObject>
 #include <thread>
 #include <mutex>
 #include <unordered_map>
+#include <functional>
 
 #ifdef ROSBRIDGE_ENABLE_ROS
 #include "rclcpp/rclcpp.hpp"
@@ -18,6 +23,7 @@
 #include "savasan_general/msg/guidance_info.hpp"
 #include "savasan_general/msg/no_fly_zone_array.hpp"
 #include "savasan_general/msg/no_fly_zone.hpp"
+#include "savasan_general/srv/send_lock.hpp"
 #include "mavros_msgs/srv/command_long.hpp"
 #include <QJsonArray>
 #include <QJsonObject>
@@ -29,7 +35,7 @@ class RosBridgeNode::RosImpl
 {
 public:
     std::shared_ptr<rclcpp::Node> node;
-    std::shared_ptr<rclcpp::executors::SingleThreadedExecutor> executor;
+    std::shared_ptr<rclcpp::Executor> executor;
     std::thread spinThread;
 
     std::mutex clientMutex;
@@ -49,6 +55,8 @@ public:
 
     std::atomic<int> nextRequestId{1};
     std::atomic<int> nextGeofenceId{1};
+
+    rclcpp::Service<savasan_general::srv::SendLock>::SharedPtr send_lock_message;
 };
 #else
 class RosBridgeNode::RosImpl
@@ -97,6 +105,66 @@ RosBridgeNode* RosBridgeNode::instance()
     return _instance;
 }
 
+// Service callback for send_lock_message - receives lock timing data
+void send_lock_message_callback(
+    const std::shared_ptr<savasan_general::srv::SendLock::Request> request,
+    std::shared_ptr<savasan_general::srv::SendLock::Response> response)
+{
+    try {
+        QJsonObject data_dict;
+        data_dict["kilitlenmeBaslangicZamani"] = QJsonObject{
+            {"saat", request->data.start_hour},
+            {"dakika", request->data.start_min},
+            {"saniye", request->data.start_second},
+            {"milisaniye", request->data.start_milisecond},
+        };
+        data_dict["kilitlenmeBitisZamani"] = QJsonObject{
+            {"saat", request->data.stop_hour},
+            {"dakika", request->data.stop_min},
+            {"saniye", request->data.stop_second},
+            {"milisaniye", request->data.stop_milisecond},
+        };
+        data_dict["otonom_kilitlenme"] = static_cast<bool>(request->data.otonom);
+
+        qDebug() << "[RosBridgeNode] send_lock_message srv received!";
+        qDebug() << "[RosBridgeNode] Lock payload:"
+                 << QJsonDocument(data_dict).toJson(QJsonDocument::Compact);
+
+        auto promise = std::make_shared<std::promise<bool>>();
+        auto future = promise->get_future();
+
+        QMetaObject::invokeMethod(
+            ServerManager::instance(),
+            [data_dict, promise]() {
+                ServerManager::instance()->sendJsonRequestAsync(
+                    QNetworkAccessManager::PostOperation,
+                    "/api/kilitlenme_bilgisi",
+                    data_dict,
+                    [promise](bool ok) {
+                        promise->set_value(ok);
+                    }
+                );
+            },
+            Qt::QueuedConnection
+        );
+
+        bool ok = future.get();
+
+        response->success = ok;
+        response->result = ok ? 200 : 400;
+
+        if (ok) {
+            qDebug() << "[RosBridgeNode] Lock data sent to server successfully";
+        } else {
+            qWarning() << "[RosBridgeNode] Server rejected lock data";
+        }
+    } catch (const std::exception& e) {
+        qWarning() << "[RosBridgeNode] Error in send_lock_message_callback:" << e.what();
+        response->success = false;
+        response->result = 400;
+    }
+}
+
 RosBridgeNode::RosBridgeNode(QObject* parent)
     : QObject(parent), _impl(std::make_unique<RosImpl>())
 {
@@ -120,11 +188,15 @@ RosBridgeNode::RosBridgeNode(QObject* parent)
         }
     );
 
+    _impl->send_lock_message = _impl->node->create_service<savasan_general::srv::SendLock>(
+        "send_lock_message",
+        send_lock_message_callback);
+
     _impl->guidanceCmdPub = _impl->node->create_publisher<savasan_general::msg::GuidanceCommand>(
         "guidance/command", rclcpp::QoS(10));
 
     // executor to spin the node in the background
-    _impl->executor = std::make_shared<rclcpp::executors::SingleThreadedExecutor>();
+    _impl->executor = std::make_shared<rclcpp::executors::MultiThreadedExecutor>(rclcpp::ExecutorOptions(), 2);
     _impl->executor->add_node(_impl->node);
 
     // spin in a background thread to service callbacks / futures

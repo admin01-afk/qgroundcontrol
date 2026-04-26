@@ -21,6 +21,8 @@
 #include <QFileInfo>
 #include <QStandardPaths>
 #include <QProcess>
+#include <QEventLoop>
+#include <QTimer>
 #include "RosBridge/src/RosBridgeNode.h"
 
 #include <functional>
@@ -60,21 +62,12 @@ ServerManager::ServerManager(QObject* parent)
 /* ============================================================================
  * HTTP / JSON Helper Utilities
  * ========================================================================== */
-static QString opToString(QNetworkAccessManager::Operation op)
-{
-    switch (op) {
-    case QNetworkAccessManager::GetOperation:    return "GET";
-    case QNetworkAccessManager::PostOperation:   return "POST";
-    case QNetworkAccessManager::PutOperation:    return "PUT";
-    case QNetworkAccessManager::DeleteOperation: return "DELETE";
-    default:                                     return "UNKNOWN";
-    }
-}
 void ServerManager::requestJson(
     QNetworkAccessManager::Operation op,
     const QString& path,
     const QJsonObject* body,
-    std::function<void(const QJsonObject&)> onSuccess)
+    std::function<void(const QJsonObject&)> onSuccess,
+    std::function<void(int httpStatus, const QString& errorText, const QByteArray& responseBody)> onError)
 {
     QUrl url(_baseUrl + path);
     QNetworkRequest req(url);
@@ -90,52 +83,62 @@ void ServerManager::requestJson(
             ? QJsonDocument(*body).toJson(QJsonDocument::Compact)
             : QByteArray{};
         reply = _nam->post(req, payload);
-    }
-    else {
-        emit errorOccurred("error requesting json","Unsupported HTTP operation");
+    } else {
+        if (onError) {
+            onError(-1, "Unsupported HTTP operation", QByteArray{});
+        }
         return;
     }
 
-    connect(reply, &QNetworkReply::finished, this,
-        [this, reply, onSuccess, op, path]()
-        {
-            const int httpStatus =
-                reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
+    connect(reply, &QNetworkReply::finished, this, [reply, onSuccess, onError, op, path]() {
+        const int httpStatus = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
+        const QByteArray data = reply->readAll();
 
-            const QByteArray data = reply->readAll();
-
-            // Network-level error
-            if (reply->error() != QNetworkReply::NoError) {
-                emit errorOccurred(
-                    tr("Network Error"),
-                    QString("%1 %2\nHTTP %3: %4\n%5")
-                        .arg(opToString(op))          // GET / POST / ...
-                        .arg(path)                    // endpoint path
-                        .arg(httpStatus)              // HTTP code
-                        .arg(reply->errorString())    // Qt error
-                        .arg(QString::fromUtf8(data)) // server body (if any)
-                );
-                reply->deleteLater();
-                return;
+        // Network-level error
+        if (reply->error() != QNetworkReply::NoError) {
+            if (onError) {
+                onError(httpStatus, reply->errorString(), data);
             }
-
-            // JSON parsing
-            QJsonParseError err;
-            QJsonDocument doc = QJsonDocument::fromJson(data, &err);
-
-            if (err.error != QJsonParseError::NoError || !doc.isObject()) {
-                emit errorOccurred( "error parsing json",
-                    QString("Invalid JSON response (HTTP %1)").arg(httpStatus)
-                );
-                reply->deleteLater();
-                return;
-            }
-
-            if (onSuccess)
-                onSuccess(doc.object());
-
             reply->deleteLater();
-        });
+            return;
+        }
+
+        QJsonParseError err;
+        QJsonDocument doc = QJsonDocument::fromJson(data, &err);
+
+        if (err.error != QJsonParseError::NoError || !doc.isObject()) {
+            if (onError) {
+                onError(httpStatus, "Invalid JSON response", data);
+            }
+            reply->deleteLater();
+            return;
+        }
+
+        if (onSuccess) {
+            onSuccess(doc.object());
+        }
+
+        reply->deleteLater();
+    });
+}
+
+void ServerManager::sendJsonRequestAsync(
+    QNetworkAccessManager::Operation op,
+    const QString& path,
+    const QJsonObject& body,
+    std::function<void(bool)> onFinished)
+{
+    requestJson(
+        op,
+        path,
+        &body,
+        [onFinished](const QJsonObject&) {
+            if (onFinished) onFinished(true);
+        },
+        [onFinished](int, const QString&, const QByteArray&) {
+            if (onFinished) onFinished(false);
+        }
+    );
 }
 
 QJsonObject ServerManager::qvariantmapToJson(const QVariantMap& m) const
@@ -654,22 +657,6 @@ void ServerManager::_telemLoop()
         if (up.contains("AUTO") || up.contains("GUIDED")) autonomous = true;
     }
     body["iha_otonom"] = autonomous ? 1 : 0;
-
-    /*  NOT implemented - PLACEHOLDER
-    int kilitlenme_val = 0;
-    if (vehicle->parameterManager()) {
-        auto p1 = vehicle->parameterManager()->getParameter(vehicle->defaultComponentId(), "KILITLENME");
-        auto p2 = vehicle->parameterManager()->getParameter(vehicle->defaultComponentId(), "iha_kilitlenme");
-        if (p1) kilitlenme_val = p1->rawValue().toInt();
-        else if (p2) kilitlenme_val = p2->rawValue().toInt();
-    }
-    body["iha_kilitlenme"] = kilitlenme_val;
-    TODO hedef
-            "hedef_merkez_X":
-            "hedef_merkez_Y":
-            "hedef_genislik":
-            "hedef_yukseklik":
-    */
 
     QTime t = QTime::currentTime();
     QJsonObject gps;

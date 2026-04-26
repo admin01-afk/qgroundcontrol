@@ -60,6 +60,8 @@ public:
     QVariantList hssList() const { return _hssList; }
     Q_INVOKABLE void reportError(const QString& header, const QString& error){emit errorOccurred(header, error);};
 
+    void sendJsonRequestAsync(QNetworkAccessManager::Operation op, const QString& path, const QJsonObject& body, std::function<void(bool)> onFinished);
+
 signals:
     void serversimRunningChanged();
     void telemRunningChanged();
@@ -78,7 +80,8 @@ private:
         QNetworkAccessManager::Operation op,
         const QString& path,
         const QJsonObject* body,
-        std::function<void(const QJsonObject&)> onSuccess
+        std::function<void(const QJsonObject&)> onSuccess,
+        std::function<void(int httpStatus, const QString& errorText, const QByteArray& responseBody)> onError = {}
     );
 
     QJsonObject qvariantmapToJson(const QVariantMap& m) const;

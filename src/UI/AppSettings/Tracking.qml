@@ -84,8 +84,8 @@ SettingsPage {
                 ServiceCheckBox {
                     text: "GPS Track Active"
                     rosBridge: page._rosBridge
-                    serviceStartFn: rosBridge.startNavigation
-                    serviceStopFn: rosBridge.stopNavigation
+                    serviceStartMethod: "startNavigation"
+                    serviceStopMethod: "stopNavigation"
                     active: page.gpsTrackActive
                     logPrefix: "GPS_Track"
                     logFn: page.addLog
@@ -94,8 +94,8 @@ SettingsPage {
                 ServiceCheckBox {
                     text: "Visual Track Active"
                     rosBridge: page._rosBridge
-                    serviceStartFn: rosBridge.startVisualTrack
-                    serviceStopFn: rosBridge.stopVisualTrack
+                    serviceStartMethod: "startVisualTrack"
+                    serviceStopMethod: "stopVisualTrack"
                     active: page.visualTrackActive
                     logPrefix: "Visual_Track"
                     logFn: page.addLog
@@ -104,8 +104,8 @@ SettingsPage {
                 ServiceCheckBox {
                     text: "Yolo Active"
                     rosBridge: page._rosBridge
-                    serviceStartFn: rosBridge.startYolo
-                    serviceStopFn: rosBridge.stopYolo
+                    serviceStartMethod: "startYolo"
+                    serviceStopMethod: "stopYolo"
                     active: page.yoloActive
                     logPrefix: "Yolo"
                     logFn: page.addLog
@@ -173,6 +173,7 @@ SettingsPage {
     function addLog(msg) {
         trackLogModel.append({ message: msg })
         Qt.callLater(function() { trackLogView.positionViewAtEnd() }) // keep view scrolled to bottom
+        console.log(msg)
     }
 }
 

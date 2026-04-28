@@ -13,6 +13,7 @@ SettingsPage {
 
     property var _kamikazeLocManager: QGroundControl.kamikazeLocManager
     property var _serverManager:      QGroundControl.serverManager
+    property var _rosBridge: QGroundControl.rosBridge
 
     QGCPalette { id: qgcPal; colorGroupEnabled: page.enabled }
 
@@ -85,6 +86,40 @@ SettingsPage {
                     }
                 }
             }
+
+            RowLayout{
+                Layout.fillWidth: true
+                spacing: ScreenTools.defaultFontPixelWidth
+
+                RowLayout {
+                    Layout.fillWidth: true
+                    spacing: ScreenTools.defaultFontPixelWidth
+
+                    QGCButton {
+                        text: qsTr("Start Kamikaze")
+                        onClicked: {
+                            page._rosBridge.startKamikaze()
+                        }
+                    }
+                }
+
+                RowLayout {
+                    Layout.fillWidth: true
+                    spacing: ScreenTools.defaultFontPixelWidth
+
+                    QGCButton {
+                        text: qsTr("ABORT")
+                        textColor: qgcPal.text
+                        backgroundColor: qgcPal.colorRed
+                        Layout.fillWidth: true
+
+                        onClicked: {
+                            page._rosBridge.abortKamikaze()
+                        }
+                    }
+                }
+            }
+
         }
     }
 

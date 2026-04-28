@@ -40,6 +40,9 @@ public:
     Q_INVOKABLE int startVisualTrack() { return callService("start_visual_track"); }
     Q_INVOKABLE int stopVisualTrack() { return callService("stop_visual_track"); }
 
+    Q_INVOKABLE int startKamikaze() { return callService("/plane1/start_kamikaze"); }
+    Q_INVOKABLE int abortKamikaze() { return callService("/plane1/abort_kamikaze"); }
+
     Q_INVOKABLE int callService(const QString& serviceName);
 
     Q_INVOKABLE void subscribeImageTopic(const QString& topicName);

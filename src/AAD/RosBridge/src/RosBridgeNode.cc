@@ -59,6 +59,10 @@ public:
 
     rclcpp::Service<savasan_general::srv::SendLock>::SharedPtr send_lock_message;
     rclcpp::Service<savasan_general::srv::SendQR>::SharedPtr send_qr_message;
+
+    // kamikaze
+    rclcpp::Service<TriggerClient>::SharedPtr start_kamikaze;
+    rclcpp::Service<TriggerClient>::SharedPtr abort_kamikaze;
 };
 #else
 class RosBridgeNode::RosImpl

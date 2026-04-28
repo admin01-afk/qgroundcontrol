@@ -24,6 +24,7 @@
 #include "savasan_general/msg/no_fly_zone_array.hpp"
 #include "savasan_general/msg/no_fly_zone.hpp"
 #include "savasan_general/srv/send_lock.hpp"
+#include "savasan_general/srv/send_qr.hpp"
 #include "mavros_msgs/srv/command_long.hpp"
 #include <QJsonArray>
 #include <QJsonObject>
@@ -57,6 +58,7 @@ public:
     std::atomic<int> nextGeofenceId{1};
 
     rclcpp::Service<savasan_general::srv::SendLock>::SharedPtr send_lock_message;
+    rclcpp::Service<savasan_general::srv::SendQR>::SharedPtr send_qr_message;
 };
 #else
 class RosBridgeNode::RosImpl
@@ -110,21 +112,28 @@ void send_lock_message_callback(
     const std::shared_ptr<savasan_general::srv::SendLock::Request> request,
     std::shared_ptr<savasan_general::srv::SendLock::Response> response)
 {
+    /*
+        Örnek Kilitlenme Verisi - SIHA_Haberlesme_Dokumani_2026
+        POST /api/kilitlenme_bilgisi
+        {
+            "kilitlenmeBitisZamani":
+                { "saat": 11,
+                "dakika": 41,
+                "saniye": 03,
+                "milisaniye": 141
+                },
+            "otonom_kilitlenme": 1
+        }
+    */
     try {
         QJsonObject data_dict;
-        data_dict["kilitlenmeBaslangicZamani"] = QJsonObject{
-            {"saat", request->data.start_hour},
-            {"dakika", request->data.start_min},
-            {"saniye", request->data.start_second},
-            {"milisaniye", request->data.start_milisecond},
-        };
         data_dict["kilitlenmeBitisZamani"] = QJsonObject{
             {"saat", request->data.stop_hour},
             {"dakika", request->data.stop_min},
             {"saniye", request->data.stop_second},
             {"milisaniye", request->data.stop_milisecond},
         };
-        data_dict["otonom_kilitlenme"] = static_cast<bool>(request->data.otonom);
+        data_dict["otonom_kilitlenme"] = request->data.otonom;
 
         qDebug() << "[RosBridgeNode] send_lock_message srv received!";
         qDebug() << "[RosBridgeNode] Lock payload:"
@@ -165,6 +174,85 @@ void send_lock_message_callback(
     }
 }
 
+void send_qr_message_callback(
+    const std::shared_ptr<savasan_general::srv::SendQR::Request> request,
+    std::shared_ptr<savasan_general::srv::SendQR::Response> response)
+{
+    /*
+        Örnek Kamikaze Verisi - SIHA_Haberlesme_Dokumani_2026
+        POST /api/kamikaze_bilgisi
+        {
+            "kamikazeBaslangicZamani"
+                : { "saat": 11,
+                "dakika": 44,
+                "saniye": 13,
+                "milisaniye": 361
+            },
+            "kamikazeBitisZamani":
+                { "saat": 11,
+                "dakika": 44,
+                "saniye": 27,
+                "milisaniye": 874
+            },
+            "qrMetni ": “teknofest2025”
+        }
+    */
+    try {
+        QJsonObject data_dict;
+        data_dict["kilitlenmeBaslangicZamani"] = QJsonObject{
+            {"saat", request->data.start_hour},
+            {"dakika", request->data.start_min},
+            {"saniye", request->data.start_second},
+            {"milisaniye", request->data.start_milisecond},
+        };
+        data_dict["kilitlenmeBitisZamani"] = QJsonObject{
+            {"saat", request->data.stop_hour},
+            {"dakika", request->data.stop_min},
+            {"saniye", request->data.stop_second},
+            {"milisaniye", request->data.stop_milisecond},
+        };
+        data_dict["qrMetni"] = QString::fromStdString(request->data.qr_text);
+
+        qDebug() << "[RosBridgeNode] send_qr_message srv received!";
+        qDebug() << "[RosBridgeNode] QR payload:"
+                 << QJsonDocument(data_dict).toJson(QJsonDocument::Compact);
+
+        auto promise = std::make_shared<std::promise<bool>>();
+        auto future = promise->get_future();
+
+        QMetaObject::invokeMethod(
+            ServerManager::instance(),
+            [data_dict, promise](){
+                ServerManager::instance()->sendJsonRequestAsync(
+                    QNetworkAccessManager::PostOperation,
+                    "/api/kamikaze_bilgisi",
+                    data_dict,
+                    [promise](bool ok) {
+                        promise->set_value(ok);
+                    }
+                );
+            },
+            Qt::QueuedConnection
+        );
+
+        bool ok = future.get();
+
+        response->success = ok;
+        response->result = ok ? 200 : 400;
+
+        if(ok){
+            qDebug() << "[RosBridgeNode] QR message sent to server successfully";
+        } else{
+            qDebug() << "[RosBridgeNode] Server rejected lock data";
+        }
+    } catch (const std::exception& e) {
+        qWarning() << "[RosBridgeNode] Error in send_qr_message_callback:" << e.what();
+        response->success = false;
+        response->result = 400;
+    }
+
+}
+
 RosBridgeNode::RosBridgeNode(QObject* parent)
     : QObject(parent), _impl(std::make_unique<RosImpl>())
 {
@@ -191,6 +279,11 @@ RosBridgeNode::RosBridgeNode(QObject* parent)
     _impl->send_lock_message = _impl->node->create_service<savasan_general::srv::SendLock>(
         "send_lock_message",
         send_lock_message_callback);
+
+    _impl->send_qr_message = _impl ->node->create_service<savasan_general::srv::SendQR>(
+        "send_qr_message",
+        send_qr_message_callback
+    );
 
     _impl->guidanceCmdPub = _impl->node->create_publisher<savasan_general::msg::GuidanceCommand>(
         "guidance/command", rclcpp::QoS(10));

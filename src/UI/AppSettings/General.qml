@@ -14,10 +14,10 @@ SettingsPage {
     // managers from QGroundControl context (same as your other file)
     property var _kamikazeLocManager: QGroundControl.kamikazeLocManager
     property var _serverManager:      QGroundControl.serverManager
+    property var _rosBridge: QGroundControl.rosBridge
 
-    // exported signals so C++ or other QML can hook into functionality
-    signal recordingStarted()
-    signal recordingStopped()
+    property bool recordingActive: false
+
     signal competitionStarted(int competitionNo)
 
     QGCPalette { id: qgcPal; colorGroupEnabled: page.enabled }
@@ -88,19 +88,14 @@ SettingsPage {
                 Layout.fillWidth: true
                 spacing: ScreenTools.defaultFontPixelWidth
 
-                // single toggle button for recording
-                QGCButton { enabled: false
-                    id: recordBtn
-                    property bool recording: false
-                    text: recording ? qsTr("Stop recording") : qsTr("Start recording")
-                    onClicked: {
-                        recording = !recording
-                        if (recording) {
-                            recordingStarted()
-                        } else {
-                            recordingStopped()
-                        }
-                    }
+                ServiceCheckBox {
+                    text: active ? qsTr("Stop recording") : qsTr("Start recording")
+                    rosBridge: page._rosBridge
+                    serviceStartMethod: "startRecording"
+                    serviceStopMethod: "stopRecording"
+                    active: page.recordingActive
+                    logPrefix: "Recording"
+                    logFn: page.addLog
                 }
 
                 QGCButton {
@@ -166,5 +161,10 @@ SettingsPage {
         function onErrorOccurred(header, message) {
             console.warn("Server error:", header, message)
         }
+    }
+
+    // helper function to add time-stamped log entries
+    function addLog(msg) {
+        console.log(msg)
     }
 }

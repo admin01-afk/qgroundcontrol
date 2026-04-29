@@ -43,6 +43,9 @@ public:
     Q_INVOKABLE int startKamikaze() { return callService("/plane1/start_kamikaze"); }
     Q_INVOKABLE int abortKamikaze() { return callService("/plane1/abort_kamikaze"); }
 
+    Q_INVOKABLE int startRecording() { return callService("/plane1/start_recording"); }
+    Q_INVOKABLE int stopRecording() { return callService("/plane1/stop_recording"); }
+
     Q_INVOKABLE int callService(const QString& serviceName);
 
     Q_INVOKABLE void subscribeImageTopic(const QString& topicName);

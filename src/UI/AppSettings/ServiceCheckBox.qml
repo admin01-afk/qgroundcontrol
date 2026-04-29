@@ -60,25 +60,21 @@ CheckBox {
                 // Service call failed
                 const msgLower = message ? message.toLowerCase() : ""
 
-                // Check if error indicates already in desired state
-                const alreadyActive = msgLower.includes("already") && msgLower.includes("active")
-                const alreadyInactive = (msgLower.includes("not") || msgLower.includes("already")) &&
-                                       (msgLower.includes("active") || msgLower.includes("inactive"))
+                const isAlready =
+                    msgLower.includes("already")         ||
+                    msgLower.includes("not active")      ||
+                    msgLower.includes("ALREADY_ACTIVE")  ||
+                    msgLower.includes("ALREADY_INACTIVE")
 
-                if (alreadyActive && root.requestedState) {
-                    // Already in desired state
-                    root.active = true
+                if (isAlready) {
+                    root.active = root.requestedState // Force state to what user wanted
                     if (root.logFn) {
-                        root.logFn(root.logPrefix + " was already enabled")
+                        root.logFn(
+                            root.logPrefix +
+                            (root.active ? " was already enabled" : " was already disabled")
+                        )
                     }
-                } else if (alreadyInactive && !root.requestedState) {
-                    // Already in desired state
-                    root.active = false
-                    if (root.logFn) {
-                        root.logFn(root.logPrefix + " was already disabled")
-                    }
-                } else {
-                    // Genuine error, keep state and log
+                } else { // Genuine error, keep state and log
                     if (root.logFn) {
                         root.logFn(root.logPrefix + " error: " + message)
                     }

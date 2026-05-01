@@ -45,7 +45,11 @@ public:
     Q_INVOKABLE int abortKamikaze() { return callService("/plane1/abort_kamikaze"); }
 
     Q_INVOKABLE int setKamikazeParams(double pullUpAltitude, double approachHeadingDeg,
-                                       double diveAngleDeg, double climbBufferDistance);
+                                    double diveAngleDeg, double climbBufferDistance,
+                                    bool setAdvancedParams, double diveStartAltitude,
+                                    double maxDiveAngleDeg, double minDiveAngleDeg,
+                                    double maxRollAngleDeg, double rollDeadbandDeg,
+                                    double rollPGain);
 
     Q_INVOKABLE int startRecording() { return callService("/plane1/start_recording"); }
     Q_INVOKABLE int stopRecording() { return callService("/plane1/stop_recording"); }

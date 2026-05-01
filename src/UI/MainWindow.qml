@@ -43,6 +43,27 @@ ApplicationWindow {
         }
     }
 
+    Connections {
+        target: QGroundControl.rosBridge
+
+        function onServiceResult(requestId, success, message) {
+            if (!success) {
+                const key = "rosbridge::" + message
+                if (key === mainWindow._lastErrorKey)
+                    return
+
+                mainWindow._lastErrorKey = key
+
+                QGroundControl.showMessageDialog(
+                    mainWindow,
+                    qsTr("ROS Service Error"),
+                    message,
+                    Dialog.Ok
+                )
+            }
+        }
+    }
+
     Component.onCompleted: {
         // Start the sequence of first run prompt(s)
         firstRunPromptManager.nextPrompt()

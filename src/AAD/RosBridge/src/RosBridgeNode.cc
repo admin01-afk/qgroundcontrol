@@ -395,7 +395,11 @@ int RosBridgeNode::callService(const QString& serviceNameQ)
 }
 
 int RosBridgeNode::setKamikazeParams(double pullUpAltitude, double approachHeadingDeg,
-                                      double diveAngleDeg, double climbBufferDistance)
+                                    double diveAngleDeg, double climbBufferDistance,
+                                    bool setAdvancedParams, double diveStartAltitude,
+                                    double maxDiveAngleDeg, double minDiveAngleDeg,
+                                    double maxRollAngleDeg, double rollDeadbandDeg,
+                                    double rollPGain)
 {
 #ifdef ROSBRIDGE_ENABLE_ROS
     const int requestId = _impl->nextRequestId++;
@@ -414,6 +418,13 @@ int RosBridgeNode::setKamikazeParams(double pullUpAltitude, double approachHeadi
     request->approach_heading_deg = approachHeadingDeg;
     request->dive_angle_deg = diveAngleDeg;
     request->climb_buffer_distance = climbBufferDistance;
+    request->set_advanced_params = setAdvancedParams;
+    request->dive_start_altitude = diveStartAltitude;
+    request->max_dive_angle_deg = maxDiveAngleDeg;
+    request->min_dive_angle_deg = minDiveAngleDeg;
+    request->max_roll_angle_deg = maxRollAngleDeg;
+    request->roll_deadband_deg = rollDeadbandDeg;
+    request->roll_p_gain = rollPGain;
 
     client->async_send_request(
         request,

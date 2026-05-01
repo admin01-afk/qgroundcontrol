@@ -79,6 +79,8 @@ if(CMAKE_SYSTEM_PROCESSOR MATCHES "x86_64")
     download_tool(APPIMAGELINT https://github.com/TheAssassin/appimagelint/releases/download/continuous/appimagelint-${CMAKE_SYSTEM_PROCESSOR}.AppImage)
 endif()
 
+download_tool(APPIMAGE_RUNTIME https://github.com/AppImage/type2-runtime/releases/download/continuous/runtime-${CMAKE_SYSTEM_PROCESSOR})
+
 # ============================================================================
 # Bundle Runtime Dependencies
 # ============================================================================
@@ -134,7 +136,7 @@ set(ENV{ARCH} ${CMAKE_SYSTEM_PROCESSOR})
 set(ENV{VERSION} ${CMAKE_PROJECT_VERSION})
 
 execute_process(
-    COMMAND "${APPIMAGETOOL_PATH}" "${APPDIR_PATH}" "${APPIMAGE_PATH}"
+    COMMAND "${APPIMAGETOOL_PATH}" "--runtime-file" "${APPIMAGE_RUNTIME_PATH}" "${APPDIR_PATH}" "${APPIMAGE_PATH}"
     COMMAND_ECHO STDOUT
     COMMAND_ERROR_IS_FATAL ANY
 )

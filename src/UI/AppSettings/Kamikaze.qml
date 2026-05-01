@@ -170,7 +170,7 @@ SettingsPage {
                 Layout.preferredHeight: _advancedExpanded ? headerRow.height + advancedLayout.implicitHeight + ScreenTools.defaultFontPixelWidth * 2 : headerRow.height
                 radius: ScreenTools.defaultFontPixelWidth / 2
                 color: qgcPal.windowShade
-                border.color: qgcPal.buttonHighlightBackground
+                border.color: qgcPal.buttonHighlight
                 border.width: 1
                 clip: true
 

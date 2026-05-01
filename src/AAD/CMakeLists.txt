@@ -44,7 +44,7 @@ target_include_directories(${CMAKE_PROJECT_NAME}
 # Copy server_sim folder next to the binary
 install(DIRECTORY
     ${CMAKE_SOURCE_DIR}/src/AAD/server_sim
-    DESTINATION .
+    DESTINATION bin
 )
 
 find_package(Python3 REQUIRED COMPONENTS Interpreter)

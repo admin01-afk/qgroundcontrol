@@ -87,9 +87,106 @@ SettingsPage {
                 }
             }
 
+            ColumnLayout{
+                spacing: 0
+                RowLayout {
+                    Layout.fillWidth: true
+                    spacing: ScreenTools.defaultFontPixelWidth
+
+                    QGCLabel {
+                        text: qsTr("Pull-up Altitude (m)")
+                        Layout.minimumWidth: 180
+                        verticalAlignment: Text.AlignVCenter
+                    }
+
+                    QGCTextField {
+                        id: pullUpAltField
+                        Layout.fillWidth: true
+                        text: "35.0"
+                        inputMethodHints: Qt.ImhFormattedNumbersOnly
+                    }
+                }
+
+                RowLayout {
+                    Layout.fillWidth: true
+                    spacing: ScreenTools.defaultFontPixelWidth
+
+                    QGCLabel {
+                        text: qsTr("Approach Heading (°)")
+                        Layout.minimumWidth: 180
+                        verticalAlignment: Text.AlignVCenter
+                    }
+
+                    QGCTextField {
+                        id: approachHeadingField
+                        Layout.fillWidth: true
+                        text: "45.0"
+                        inputMethodHints: Qt.ImhFormattedNumbersOnly
+                    }
+                }
+
+                RowLayout {
+                    Layout.fillWidth: true
+                    spacing: ScreenTools.defaultFontPixelWidth
+
+                    QGCLabel {
+                        text: qsTr("Dive Angle (°)")
+                        Layout.minimumWidth: 180
+                        verticalAlignment: Text.AlignVCenter
+                    }
+
+                    QGCTextField {
+                        id: diveAngleField
+                        Layout.fillWidth: true
+                        text: "25.0"
+                        inputMethodHints: Qt.ImhFormattedNumbersOnly
+                    }
+                }
+
+                RowLayout {
+                    Layout.fillWidth: true
+                    spacing: ScreenTools.defaultFontPixelWidth
+
+                    QGCLabel {
+                        text: qsTr("Climb Buffer Distance (m)")
+                        Layout.minimumWidth: 180
+                        verticalAlignment: Text.AlignVCenter
+                    }
+
+                    QGCTextField {
+                        id: climbBufferField
+                        Layout.fillWidth: true
+                        text: "150.0"
+                        inputMethodHints: Qt.ImhFormattedNumbersOnly
+                    }
+                }
+            }
+
             RowLayout{
                 Layout.fillWidth: true
                 spacing: ScreenTools.defaultFontPixelWidth
+
+                RowLayout {
+                    Layout.fillWidth: true
+                    spacing: ScreenTools.defaultFontPixelWidth
+
+                    QGCButton {
+                        text: qsTr("Send Parameters")
+                        onClicked: {
+                            const pullUp = parseFloat(pullUpAltField.text)
+                            const heading = parseFloat(approachHeadingField.text)
+                            const dive = parseFloat(diveAngleField.text)
+                            const climb = parseFloat(climbBufferField.text)
+
+                            if (isNaN(pullUp) || isNaN(heading) || isNaN(dive) || isNaN(climb)) {
+                                console.warn("Invalid parameter values")
+                                return
+                            }
+
+                            page._rosBridge.setKamikazeParams(pullUp, heading, dive, climb)
+                        }
+                    }
+                }
 
                 RowLayout {
                     Layout.fillWidth: true

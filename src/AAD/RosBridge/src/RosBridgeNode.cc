@@ -24,6 +24,7 @@
 #include "savasan_general/msg/no_fly_zone_array.hpp"
 #include "savasan_general/msg/no_fly_zone.hpp"
 #include "savasan_general/srv/send_lock.hpp"
+#include "savasan_general/srv/set_kamikaze_params.hpp"
 #include "savasan_general/srv/send_qr.hpp"
 #include "mavros_msgs/srv/command_long.hpp"
 #include <QJsonArray>
@@ -63,6 +64,8 @@ public:
     // kamikaze
     rclcpp::Service<TriggerClient>::SharedPtr start_kamikaze;
     rclcpp::Service<TriggerClient>::SharedPtr abort_kamikaze;
+
+    std::shared_ptr<SetKamikazeParamsClient> setKamikazeParamsClient;
 };
 #else
 class RosBridgeNode::RosImpl
@@ -99,6 +102,19 @@ RosBridgeNode::getOrCreateCommandLongClient(const std::string& serviceName)
     auto client = _impl->node->create_client<mavros_msgs::srv::CommandLong>(serviceName);
     _impl->commandLongClients.emplace(serviceName, client);
     return client;
+}
+
+std::shared_ptr<RosBridgeNode::SetKamikazeParamsClient>
+RosBridgeNode::getOrCreateSetKamikazeParamsClient(const std::string& serviceName)
+{
+    std::lock_guard<std::mutex> lock(_impl->clientMutex);
+
+    if (_impl->setKamikazeParamsClient) {
+        return _impl->setKamikazeParamsClient;
+    }
+
+    _impl->setKamikazeParamsClient = _impl->node->create_client<savasan_general::srv::SetKamikazeParams>(serviceName);
+    return _impl->setKamikazeParamsClient;
 }
 #endif
 static RosBridgeNode* _instance = nullptr;
@@ -371,6 +387,58 @@ int RosBridgeNode::callService(const QString& serviceNameQ)
 
 #else
     Q_UNUSED(serviceNameQ);
+    QMetaObject::invokeMethod(this, [this]() {
+        emit serviceResult(-1, false, QStringLiteral("ROS not available in QGC build"));
+    }, Qt::QueuedConnection);
+    return -1;
+#endif
+}
+
+int RosBridgeNode::setKamikazeParams(double pullUpAltitude, double approachHeadingDeg,
+                                      double diveAngleDeg, double climbBufferDistance)
+{
+#ifdef ROSBRIDGE_ENABLE_ROS
+    const int requestId = _impl->nextRequestId++;
+
+    auto client = getOrCreateSetKamikazeParamsClient("/plane1/guidance/set_kamikaze_params");
+
+    if (!client->wait_for_service(std::chrono::seconds(1))) {
+        QMetaObject::invokeMethod(this, [this, requestId]() {
+            emit serviceResult(requestId, false, QStringLiteral("Service not available"));
+        }, Qt::QueuedConnection);
+        return requestId;
+    }
+
+    auto request = std::make_shared<savasan_general::srv::SetKamikazeParams::Request>();
+    request->pull_up_altitude = pullUpAltitude;
+    request->approach_heading_deg = approachHeadingDeg;
+    request->dive_angle_deg = diveAngleDeg;
+    request->climb_buffer_distance = climbBufferDistance;
+
+    client->async_send_request(
+        request,
+        [this, requestId](rclcpp::Client<savasan_general::srv::SetKamikazeParams>::SharedFuture future) {
+            bool success = false;
+            QString message;
+            try {
+                auto response = future.get();
+                success = response->success;
+                message = QString::fromStdString(response->message);
+            } catch (const std::exception& e) {
+                message = QString::fromStdString(e.what());
+            }
+            QMetaObject::invokeMethod(this, [this, requestId, success, message]() {
+                emit serviceResult(requestId, success, message);
+            }, Qt::QueuedConnection);
+        }
+    );
+    return requestId;
+
+#else
+    Q_UNUSED(pullUpAltitude);
+    Q_UNUSED(approachHeadingDeg);
+    Q_UNUSED(diveAngleDeg);
+    Q_UNUSED(climbBufferDistance);
     QMetaObject::invokeMethod(this, [this]() {
         emit serviceResult(-1, false, QStringLiteral("ROS not available in QGC build"));
     }, Qt::QueuedConnection);

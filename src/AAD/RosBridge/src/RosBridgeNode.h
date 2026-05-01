@@ -11,6 +11,7 @@
 #include "sensor_msgs/msg/image.hpp"
 #include "savasan_general/msg/guidance_info.hpp"
 #include "savasan_general/msg/no_fly_zone.hpp"
+#include "savasan_general/srv/set_kamikaze_params.hpp"
 #include "mavros_msgs/srv/command_long.hpp"
 #endif
 
@@ -42,6 +43,9 @@ public:
 
     Q_INVOKABLE int startKamikaze() { return callService("/plane1/start_kamikaze"); }
     Q_INVOKABLE int abortKamikaze() { return callService("/plane1/abort_kamikaze"); }
+
+    Q_INVOKABLE int setKamikazeParams(double pullUpAltitude, double approachHeadingDeg,
+                                       double diveAngleDeg, double climbBufferDistance);
 
     Q_INVOKABLE int startRecording() { return callService("/plane1/start_recording"); }
     Q_INVOKABLE int stopRecording() { return callService("/plane1/stop_recording"); }
@@ -89,12 +93,16 @@ private:
 #ifdef ROSBRIDGE_ENABLE_ROS
     using TriggerClient = rclcpp::Client<std_srvs::srv::Trigger>;
     using CommandLongClient = rclcpp::Client<mavros_msgs::srv::CommandLong>;
+    using SetKamikazeParamsClient = rclcpp::Client<savasan_general::srv::SetKamikazeParams>;
 
     std::shared_ptr<TriggerClient>
     getOrCreateTriggerClient(const std::string& serviceName);
 
     std::shared_ptr<CommandLongClient>
     getOrCreateCommandLongClient(const std::string& serviceName);
+
+    std::shared_ptr<SetKamikazeParamsClient>
+    getOrCreateSetKamikazeParamsClient(const std::string& serviceName);
 
     void clearGeofences();
     void uploadGeofence(double latitude, double longitude, double radius);

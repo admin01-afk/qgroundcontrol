@@ -12,7 +12,9 @@
 #include "savasan_general/msg/guidance_info.hpp"
 #include "savasan_general/msg/no_fly_zone.hpp"
 #include "savasan_general/srv/set_kamikaze_params.hpp"
+#include "savasan_general/srv/konum_handling_config.hpp"
 #include "mavros_msgs/srv/command_long.hpp"
+#include <unordered_map>
 #endif
 
 class RosBridgeNode : public QObject
@@ -50,6 +52,8 @@ public:
                                     double maxDiveAngleDeg, double minDiveAngleDeg,
                                     double maxRollAngleDeg, double rollDeadbandDeg,
                                     double rollPGain);
+
+    Q_INVOKABLE int setKonumHandlingConfig(int target, bool fixed_target);
 
     Q_INVOKABLE int startRecording() { return callService("/plane1/start_recording"); }
     Q_INVOKABLE int stopRecording() { return callService("/plane1/stop_recording"); }
@@ -98,15 +102,19 @@ private:
     using TriggerClient = rclcpp::Client<std_srvs::srv::Trigger>;
     using CommandLongClient = rclcpp::Client<mavros_msgs::srv::CommandLong>;
     using SetKamikazeParamsClient = rclcpp::Client<savasan_general::srv::SetKamikazeParams>;
+    using KonumHandlingConfigClient = rclcpp::Client<savasan_general::srv::KonumHandlingConfig>;
 
-    std::shared_ptr<TriggerClient>
-    getOrCreateTriggerClient(const std::string& serviceName);
+    template<typename ServiceT>
+    std::shared_ptr<rclcpp::Client<ServiceT>>
+    getOrCreateClient(
+        std::shared_ptr<rclcpp::Client<ServiceT>>& client,
+        const std::string& serviceName);
 
-    std::shared_ptr<CommandLongClient>
-    getOrCreateCommandLongClient(const std::string& serviceName);
-
-    std::shared_ptr<SetKamikazeParamsClient>
-    getOrCreateSetKamikazeParamsClient(const std::string& serviceName);
+    template<typename ServiceT>
+    std::shared_ptr<rclcpp::Client<ServiceT>>
+    getOrCreateClient(
+        std::unordered_map<std::string, std::shared_ptr<rclcpp::Client<ServiceT>>>& clients,
+        const std::string& serviceName);
 
     void clearGeofences();
     void uploadGeofence(double latitude, double longitude, double radius);

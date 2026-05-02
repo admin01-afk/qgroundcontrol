@@ -37,41 +37,63 @@ SettingsPage {
             Layout.fillWidth: true
             spacing: ScreenTools.defaultFontPixelHeight
 
-            // --- Target selector row ---
-            RowLayout {
+            // --- Target Selector Card ---
+            Rectangle {
                 Layout.fillWidth: true
-                spacing: ScreenTools.defaultFontPixelWidth
+                Layout.preferredHeight: targetCardContent.height + ScreenTools.defaultFontPixelHeight * 2
+                color: qgcPal.windowShade
+                border.color: qgcPal.windowShadeDark
+                border.width: 1
+                radius: 4
 
-                QGCLabel {
-                    text: qsTr("Target ID:")
-                    Layout.preferredWidth: 120
-                    verticalAlignment: Text.AlignVCenter
-                }
+                ColumnLayout {
+                    id: targetCardContent
+                    anchors.left: parent.left
+                    anchors.right: parent.right
+                    anchors.verticalCenter: parent.verticalCenter
+                    anchors.margins: ScreenTools.defaultFontPixelWidth * 2
+                    spacing: ScreenTools.defaultFontPixelHeight
 
-                ComboBox { enabled: false
-                    id: targetCombo
-                    Layout.preferredWidth: 140
-                    // replace with dynamic model if you have one
-                    // model: [ "1", "2", "3", "4" ]
-                    onCurrentTextChanged: {
-                        targetChanged(currentText)
-                        addLog("Target selected: " + currentText)
+                    QGCLabel {
+                        text: qsTr("Target Selection Configuration")
+                        font.bold: true
                     }
-                }
 
-                QGCButton { enabled: false
-                    text: qsTr("Select manually")
-                    onClicked: {
-                        selectManually()
-                        addLog("Manual target selection requested")
-                    }
-                }
+                    RowLayout {
+                        Layout.fillWidth: true
+                        spacing: ScreenTools.defaultFontPixelWidth * 2
 
-                QGCButton { enabled: false
-                    text: qsTr("Start auto selection")
-                    onClicked: {
-                        startAutoSelection()
-                        addLog("Auto selection started")
+                        QGCLabel {
+                            text: qsTr("Target ID:")
+                        }
+
+                        QGCTextField {
+                            id: targetIdField
+                            text: "1"
+                            Layout.preferredWidth: ScreenTools.defaultFontPixelWidth * 8
+                            validator: IntValidator { bottom: 1; top: 999 }
+                        }
+
+                        Item { Layout.fillWidth: true } // Spacer
+
+                        QGCButton {
+                            text: qsTr("Lock Target")
+                            primary: true
+                            onClicked: {
+                                var tId = parseInt(targetIdField.text) || 0
+                                page._rosBridge.setKonumHandlingConfig(tId, true)
+                                page.addLog("Configured: Lock to Target " + tId)
+                            }
+                        }
+
+                        QGCButton {
+                            text: qsTr("Auto Selection")
+                            onClicked: {
+                                var tId = parseInt(targetIdField.text) || 0
+                                page._rosBridge.setKonumHandlingConfig(tId, false)
+                                page.addLog("Configured: Auto Selection (Pref: " + tId + ")")
+                            }
+                        }
                     }
                 }
             }

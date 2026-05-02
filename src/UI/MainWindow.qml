@@ -64,6 +64,25 @@ ApplicationWindow {
         }
     }
 
+    Shortcut {
+        sequence: "escape"
+        context: Qt.ApplicationShortcut
+        onActivated: {
+            if (mainWindow.allowViewSwitch()) {
+                const inFlyView = !planView.visible && !toolDrawer.visible
+                if (indicatorDrawer.visible) {
+                    mainWindow.closeIndicatorDrawer()
+                } else {
+                    if (inFlyView) {
+                        mainWindow.showIndicatorDrawer(toolSelectComponent, null)
+                    } else {
+                        mainWindow.showFlyView()
+                    }
+                }
+            }
+        }
+    }
+
     Component.onCompleted: {
         // Start the sequence of first run prompt(s)
         firstRunPromptManager.nextPrompt()

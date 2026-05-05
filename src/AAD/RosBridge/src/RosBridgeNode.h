@@ -37,12 +37,6 @@ public:
     Q_INVOKABLE int startYolo() { return callService("/plane1/start_yolo"); }
     Q_INVOKABLE int stopYolo() { return callService("/plane1/stop_yolo"); }
 
-    Q_INVOKABLE int startNavigation() { return callService("start_navigation"); }
-    Q_INVOKABLE int stopNavigation() { return callService("stop_navigation"); }
-
-    Q_INVOKABLE int startVisualTrack() { return callService("start_visual_track"); }
-    Q_INVOKABLE int stopVisualTrack() { return callService("stop_visual_track"); }
-
     Q_INVOKABLE int startKamikaze() { return callService("/plane1/start_kamikaze"); }
     Q_INVOKABLE int abortKamikaze() { return callService("/plane1/abort_kamikaze"); }
 

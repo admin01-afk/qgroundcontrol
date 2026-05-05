@@ -39,8 +39,13 @@ SettingsPage {
 
             // --- Target Selector Card ---
             Rectangle {
-                Layout.fillWidth: true
-                Layout.preferredHeight: targetCardContent.height + ScreenTools.defaultFontPixelHeight * 2
+                id: targetCard
+                Layout.fillWidth: false
+                Layout.preferredWidth: targetCardContent.implicitWidth + ScreenTools.defaultFontPixelWidth * 4
+                Layout.preferredHeight: targetCardContent.implicitHeight + ScreenTools.defaultFontPixelHeight * 2
+                implicitWidth: Layout.preferredWidth
+                implicitHeight: Layout.preferredHeight
+
                 color: qgcPal.windowShade
                 border.color: qgcPal.windowShadeDark
                 border.width: 1
@@ -48,9 +53,7 @@ SettingsPage {
 
                 ColumnLayout {
                     id: targetCardContent
-                    anchors.left: parent.left
-                    anchors.right: parent.right
-                    anchors.verticalCenter: parent.verticalCenter
+                    anchors.fill: parent
                     anchors.margins: ScreenTools.defaultFontPixelWidth * 2
                     spacing: ScreenTools.defaultFontPixelHeight
 
@@ -60,7 +63,6 @@ SettingsPage {
                     }
 
                     RowLayout {
-                        Layout.fillWidth: true
                         spacing: ScreenTools.defaultFontPixelWidth * 2
 
                         QGCLabel {
@@ -70,11 +72,10 @@ SettingsPage {
                         QGCTextField {
                             id: targetIdField
                             text: "1"
+                            Layout.fillWidth: true
                             Layout.preferredWidth: ScreenTools.defaultFontPixelWidth * 8
                             validator: IntValidator { bottom: 1; top: 999 }
                         }
-
-                        Item { Layout.fillWidth: true } // Spacer
 
                         QGCButton {
                             text: qsTr("Lock Target")
@@ -102,26 +103,6 @@ SettingsPage {
             RowLayout {
                 Layout.fillWidth: true
                 spacing: ScreenTools.defaultFontPixelWidth
-
-                ServiceCheckBox {
-                    text: "GPS Track Active"
-                    rosBridge: page._rosBridge
-                    serviceStartMethod: "startNavigation"
-                    serviceStopMethod: "stopNavigation"
-                    active: page.gpsTrackActive
-                    logPrefix: "GPS_Track"
-                    logFn: page.addLog
-                }
-
-                ServiceCheckBox {
-                    text: "Visual Track Active"
-                    rosBridge: page._rosBridge
-                    serviceStartMethod: "startVisualTrack"
-                    serviceStopMethod: "stopVisualTrack"
-                    active: page.visualTrackActive
-                    logPrefix: "Visual_Track"
-                    logFn: page.addLog
-                }
 
                 ServiceCheckBox {
                     text: "Yolo Active"

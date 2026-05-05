@@ -477,8 +477,8 @@ Item {
                 anchors.fill: parent
                 acceptedButtons: Qt.LeftButton
                 cursorShape: Qt.OpenHandCursor
-                drag.target: root.imagePanelOpen ? imagePanel : undefined
-                drag.axis: Drag.XAndYAxis
+                drag.target: imagePanel
+                drag.axis: root.imagePanelOpen ? Drag.XAndYAxis : Drag.XAxis
                 drag.minimumX: 0
                 drag.minimumY: 0
                 drag.maximumX: imagePanel.parent ? Math.max(0, imagePanel.parent.width - imagePanel.width) : 0

@@ -423,7 +423,7 @@ int RosBridgeNode::setKamikazeParams(double pullUpAltitude, double approachHeadi
 #endif
 }
 
-int RosBridgeNode::setKonumHandlingConfig(int target, bool fixed_target)
+int RosBridgeNode::setKonumHandlingConfig(int target_id, bool fixed_target)
 {
 #ifdef ROSBRIDGE_ENABLE_ROS
     const int requestId = _impl->nextRequestId++;
@@ -439,7 +439,7 @@ int RosBridgeNode::setKonumHandlingConfig(int target, bool fixed_target)
     }
 
     auto request = std::make_shared<savasan_general::srv::KonumHandlingConfig::Request>();
-    request->target = target;
+    request->target_id = target_id;
     request->fixed_target = fixed_target;
 
     client->async_send_request(

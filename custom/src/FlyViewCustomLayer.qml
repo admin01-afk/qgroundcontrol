@@ -406,7 +406,8 @@ Item {
             rosImage.source = "image://ros/plane1/image_processed?" + Math.random()
 
             if (rosImage.implicitWidth > 0 && rosImage.implicitHeight > 0) {
-                contentW = Math.min(rosImage.implicitWidth, parent.width * 0.4)
+                var newW = Math.min(rosImage.implicitWidth, parent.width * 0.4)
+                contentW = Math.max(minContentW, newW)
                 contentH = contentW * (rosImage.implicitHeight / rosImage.implicitWidth)
             }
 
@@ -594,6 +595,10 @@ Item {
             height: parent.height - header.height
             clip: true
 
+            HoverHandler {
+                id: imageHoverArea
+            }
+
             Image {
                 id: rosImage
                 anchors.fill: parent
@@ -604,6 +609,9 @@ Item {
                 onSourceSizeChanged: {
                     if (rosImage.sourceSize.width > 0 && rosImage.sourceSize.height > 0) {
                         var r = rosImage.sourceSize.height / rosImage.sourceSize.width
+                        if (imagePanel.contentW < imagePanel.minContentW) {
+                            imagePanel.contentW = imagePanel.minContentW
+                        }
                         imagePanel.contentH = imagePanel.contentW * r
                         imagePanel.updatePanelGeometry()
                     }
@@ -619,30 +627,197 @@ Item {
             }
         }
 
-        // image topics combobox - positioned at bottom of panel
-        ComboBox {
-            id: imageTopicsCombobox
-            anchors.left: parent.left
-            anchors.right: parent.right
-            anchors.bottom: resizeHandle.top
-            anchors.leftMargin: ScreenTools.defaultFontPixelWidth * 0.5
-            anchors.rightMargin: resizeHandle.width
-            anchors.bottomMargin: ScreenTools.defaultFontPixelHeight * 0.5
-            height: ScreenTools.defaultFontPixelHeight * 1.8
-            model: _rosBridge.image_topics
-            visible: root.imagePanelOpen && !root.imagePanelMaximized
+        // image topics controls
+        Rectangle {
+            id: topicsControlsArea
 
-            delegate: ItemDelegate {
-                width: imageTopicsCombobox.width
-                text: modelData
-                highlighted: imageTopicsCombobox.highlightedIndex === index
+            property bool isHovered: imageHoverArea.hovered || controlsHoverArea.hovered || imageTopicsCombobox.pressed || newTopicInput.activeFocus
+            property bool isShown: false
+
+            onIsHoveredChanged: {
+                if (isHovered) {
+                    hideTimer.stop()
+                    isShown = true
+                } else {
+                    hideTimer.restart()
+                }
             }
 
-            onActivated: function(index) {
-                if (index >= 0 && index < model.length) {
-                    var topic = model[index]
-                    console.log("Image topic changed to:", topic)
-                    _rosBridge.setSelectedImageTopic(topic)
+            Timer {
+                id: hideTimer
+                interval: 200
+                onTriggered: topicsControlsArea.isShown = false
+            }
+
+            anchors.left: parent.left
+            anchors.right: parent.right
+            anchors.bottom: parent.bottom
+            anchors.leftMargin: ScreenTools.defaultFontPixelWidth * 0.5
+            anchors.rightMargin: root.imagePanelMaximized ? ScreenTools.defaultFontPixelWidth * 0.5 : resizeHandle.width + ScreenTools.defaultFontPixelWidth * 0.5
+            anchors.bottomMargin: root.imagePanelMaximized ? ScreenTools.defaultFontPixelHeight * 0.5 : resizeHandle.height + ScreenTools.defaultFontPixelHeight * 0.5
+            height: ScreenTools.defaultFontPixelHeight * 4.6
+
+            color: Qt.rgba(qgcPal.windowShadeDark.r, qgcPal.windowShadeDark.g, qgcPal.windowShadeDark.b, 0.85)
+            radius: 6
+            border.color: Qt.rgba(qgcPal.buttonBorder.r, qgcPal.buttonBorder.g, qgcPal.buttonBorder.b, 0.5)
+            border.width: 1
+
+            visible: root.imagePanelOpen && !root.imagePanelMaximized
+            opacity: isShown ? 1.0 : 0.0
+            clip: true
+            z: 12
+
+            Behavior on opacity { NumberAnimation { duration: 250; easing.type: Easing.InOutQuad } }
+
+            transform: Translate {
+                y: topicsControlsArea.isShown ? 0 : ScreenTools.defaultFontPixelHeight * 0.5
+                Behavior on y { NumberAnimation { duration: 250; easing.type: Easing.OutCubic } }
+            }
+
+            HoverHandler {
+                id: controlsHoverArea
+            }
+
+            ColumnLayout {
+                anchors.fill: parent
+                anchors.margins: ScreenTools.defaultFontPixelHeight * 0.3
+                spacing: ScreenTools.defaultFontPixelHeight * 0.1
+
+                // ComboBox and Remove button row
+                RowLayout {
+                    Layout.fillWidth: true
+                    Layout.preferredHeight: ScreenTools.defaultFontPixelHeight * 2.0
+                    spacing: ScreenTools.defaultFontPixelWidth * 0.3
+
+                    ComboBox {
+                        id: imageTopicsCombobox
+                        Layout.fillWidth: true
+                        Layout.preferredHeight: parent.height
+                        model: _rosBridge.image_topics
+                        
+                        displayText: _rosBridge.selectedImageTopic
+
+                        function syncIndex() {
+                            for (var i = 0; i < model.length; ++i) {
+                                if (model[i] === _rosBridge.selectedImageTopic) {
+                                    if (currentIndex !== i) currentIndex = i;
+                                    return;
+                                }
+                            }
+                        }
+
+                        Component.onCompleted: syncIndex()
+                        
+                        Connections {
+                            target: _rosBridge
+                            function onSelectedImageTopicChanged() { imageTopicsCombobox.syncIndex() }
+                            function onImageTopicsChanged() { imageTopicsCombobox.syncIndex() }
+                        }
+
+                        delegate: ItemDelegate {
+                            width: imageTopicsCombobox.width
+                            text: modelData
+                            highlighted: imageTopicsCombobox.highlightedIndex === index
+                        }
+
+                        onActivated: function(index) {
+                            if (index >= 0 && index < model.length) {
+                                var topic = model[index]
+                                console.log("Image topic changed to:", topic)
+                                _rosBridge.setSelectedImageTopic(topic)
+                            }
+                        }
+                    }
+
+                    Button {
+                        id: removeTopicBtn
+                        text: qsTr("✕")
+                        Layout.preferredWidth: ScreenTools.defaultFontPixelHeight * 2.0
+                        Layout.preferredHeight: parent.height
+                        enabled: imageTopicsCombobox.currentIndex >= 0
+                        ToolTip.visible: hovered
+                        ToolTip.text: qsTr("Remove selected topic")
+
+                        onClicked: {
+                            if (imageTopicsCombobox.currentIndex >= 0) {
+                                var topic = imageTopicsCombobox.model[imageTopicsCombobox.currentIndex]
+                                _rosBridge.removeImageTopic(topic)
+                            }
+                        }
+
+                        background: Rectangle {
+                            color: removeTopicBtn.hovered ? Qt.lighter(qgcPal.buttonHighlight, 1.3) : qgcPal.buttonHighlight
+                            border.color: qgcPal.buttonBorder
+                            border.width: 1
+                            radius: 3
+                        }
+
+                        contentItem: Text {
+                            text: parent.text
+                            color: qgcPal.text
+                            horizontalAlignment: Text.AlignHCenter
+                            verticalAlignment: Text.AlignVCenter
+                            font.bold: true
+                            font.pixelSize: ScreenTools.defaultFontPixelHeight * 1.0
+                        }
+                    }
+                }
+
+                // Add topic controls row
+                RowLayout {
+                    Layout.fillWidth: true
+                    Layout.preferredHeight: ScreenTools.defaultFontPixelHeight * 2.0
+                    spacing: ScreenTools.defaultFontPixelWidth * 0.3
+
+                    TextField {
+                        id: newTopicInput
+                        Layout.fillWidth: true
+                        Layout.preferredHeight: parent.height
+                        placeholderText: qsTr("New topic...")
+                        font.pixelSize: ScreenTools.defaultFontPixelHeight * 0.9
+                        color: qgcPal.text
+                        background: Rectangle {
+                            color: qgcPal.windowShadeDark
+                            border.color: newTopicInput.focus ? qgcPal.buttonHighlight : qgcPal.buttonBorder
+                            border.width: 1
+                            radius: 3
+                        }
+                    }
+
+                    Button {
+                        id: addTopicBtn
+                        text: qsTr("+")
+                        Layout.preferredWidth: ScreenTools.defaultFontPixelHeight * 2.0
+                        Layout.preferredHeight: parent.height
+                        enabled: newTopicInput.text.length > 0
+                        ToolTip.visible: hovered
+                        ToolTip.text: qsTr("Add topic")
+
+                        onClicked: {
+                            if (newTopicInput.text.length > 0) {
+                                _rosBridge.addImageTopic(newTopicInput.text)
+                                _rosBridge.setSelectedImageTopic(newTopicInput.text)
+                                newTopicInput.text = ""
+                                newTopicInput.focus = false
+                            }
+                        }
+
+                        background: Rectangle {
+                            color: addTopicBtn.hovered ? Qt.lighter(qgcPal.buttonHighlight, 1.3) : qgcPal.buttonHighlight
+                            border.color: qgcPal.buttonBorder
+                            border.width: 1
+                            radius: 3
+                        }
+
+                        contentItem: Text {
+                            text: parent.text
+                            color: qgcPal.text
+                            horizontalAlignment: Text.AlignHCenter
+                            verticalAlignment: Text.AlignVCenter
+                            font.bold: true
+                            font.pixelSize: ScreenTools.defaultFontPixelHeight * 1.0
+                        }
+                    }
                 }
             }
         }

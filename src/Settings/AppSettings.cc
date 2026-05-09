@@ -211,6 +211,40 @@ void AppSettings::setPanelSlideFromTop(bool value)
     emit panelSlideFromTopChanged();
 }
 
+QStringList AppSettings::imageTopics() const
+{
+    QSettings settings;
+    return settings.value("ImagePanel/Topics", QStringList{"/plane1/image_processed"}).toStringList();
+}
+
+void AppSettings::setImageTopics(const QStringList& topics)
+{
+    if (imageTopics() == topics) return;
+
+    QSettings settings;
+    settings.setValue("ImagePanel/Topics", topics);
+    emit imageTopicsChanged();
+}
+
+void AppSettings::addImageTopic(const QString& topic)
+{
+    if (topic.isEmpty()) return;
+
+    QStringList topics = imageTopics();
+    if (!topics.contains(topic)) {
+        topics.append(topic);
+        setImageTopics(topics);
+    }
+}
+
+void AppSettings::removeImageTopic(const QString& topic)
+{
+    QStringList topics = imageTopics();
+    if (topics.removeAll(topic) > 0) {
+        setImageTopics(topics);
+    }
+}
+
 static const char* kOperationModeKey = "OperationMode";
 
 AppSettings::OperationMode AppSettings::operationMode() const

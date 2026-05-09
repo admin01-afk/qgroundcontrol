@@ -24,6 +24,7 @@ class RosBridgeNode : public QObject
 {
     Q_OBJECT
     Q_PROPERTY(QStringList image_topics READ getImageTopics NOTIFY imageTopicsChanged)
+    Q_PROPERTY(QString selectedImageTopic READ selectedImageTopic WRITE setSelectedImageTopic NOTIFY selectedImageTopicChanged)
     Q_PROPERTY(int imageRevision READ imageRevision NOTIFY imageRevisionChanged)
     Q_PROPERTY(QString currentMode READ currentMode NOTIFY currentModeChanged)
     Q_PROPERTY(bool modeLock READ modeLock NOTIFY modeLockChanged)
@@ -70,6 +71,8 @@ public:
     Q_INVOKABLE void sendGuidanceCommand(int command, bool force = false);
 
     Q_INVOKABLE void setSelectedImageTopic(const QString& topic);
+    Q_INVOKABLE void addImageTopic(const QString& topic);
+    Q_INVOKABLE void removeImageTopic(const QString& topic);
 
     int imageRevision() const { return _imageRevision; }
     QString currentMode() const { return _currentMode; }
@@ -78,6 +81,7 @@ public:
     QList<bool> methodAuths() const { return _methodAuths; }
 
     QStringList getImageTopics() const { return _image_topics; }
+    QString selectedImageTopic() const;
 
 signals:
     // emitted on Qt main thread when a service call returns
@@ -88,6 +92,7 @@ signals:
     void methodNamesChanged();
     void methodAuthsChanged();
     void imageTopicsChanged();
+    void selectedImageTopicChanged();
 
 private:
     // Use opaque pointers to ROS implementation to avoid MOC template instantiation issues
@@ -124,5 +129,8 @@ private:
     void geofenceResponseCallback(int geofenceId, bool isClear);
 
     void guidanceInfoCallback(savasan_general::msg::GuidanceInfo::SharedPtr msg);
+
+    void createImageSubscription(const QString& topic);
+    void removeImageSubscription(const QString& topic);
 #endif
 };

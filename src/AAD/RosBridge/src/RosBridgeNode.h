@@ -3,7 +3,10 @@
 #include <QtCore/QObject>
 #include <QtCore/QString>
 #include <QtGui/QImage>
+
+#include <list>
 #include <memory>
+#include <string>
 
 #ifdef ROSBRIDGE_ENABLE_ROS
 #include <rclcpp/rclcpp.hpp>
@@ -20,6 +23,7 @@
 class RosBridgeNode : public QObject
 {
     Q_OBJECT
+    Q_PROPERTY(QStringList image_topics READ getImageTopics NOTIFY imageTopicsChanged)
     Q_PROPERTY(int imageRevision READ imageRevision NOTIFY imageRevisionChanged)
     Q_PROPERTY(QString currentMode READ currentMode NOTIFY currentModeChanged)
     Q_PROPERTY(bool modeLock READ modeLock NOTIFY modeLockChanged)
@@ -54,7 +58,6 @@ public:
 
     Q_INVOKABLE int callService(const QString& serviceName);
 
-    Q_INVOKABLE void subscribeImageTopic(const QString& topicName);
     QImage latestImage() const;
 
     // Publish KonumBilgileri array to ROS topic
@@ -66,11 +69,15 @@ public:
     // Send guidance command to ROS topic
     Q_INVOKABLE void sendGuidanceCommand(int command, bool force = false);
 
+    Q_INVOKABLE void setSelectedImageTopic(const QString& topic);
+
     int imageRevision() const { return _imageRevision; }
     QString currentMode() const { return _currentMode; }
     bool modeLock() const { return _modeLock; }
     QStringList methodNames() const { return _methodNames; }
     QList<bool> methodAuths() const { return _methodAuths; }
+
+    QStringList getImageTopics() const { return _image_topics; }
 
 signals:
     // emitted on Qt main thread when a service call returns
@@ -80,12 +87,14 @@ signals:
     void modeLockChanged();
     void methodNamesChanged();
     void methodAuthsChanged();
+    void imageTopicsChanged();
 
 private:
     // Use opaque pointers to ROS implementation to avoid MOC template instantiation issues
     class RosImpl;
     std::unique_ptr<RosImpl> _impl;
 
+    QStringList _image_topics = {"/plane1/image_processed", "test", "/test/image", "/plane1/image_processed"};
     int _imageRevision = 0;
     QString _currentMode = "";
     bool _modeLock = false;

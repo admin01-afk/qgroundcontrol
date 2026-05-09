@@ -34,6 +34,8 @@
 #include "std_srvs/srv/trigger.hpp"
 #endif
 
+static QImage rosImageToQImage(const sensor_msgs::msg::Image& msg);
+
 // Only include ROS headers if available and enabled (for colcon/QGC build with ROS)
 #ifdef ROSBRIDGE_ENABLE_ROS
 class RosBridgeNode::RosImpl
@@ -48,7 +50,9 @@ public:
     std::unordered_map<std::string, std::shared_ptr<CommandLongClient>> commandLongClients;
 
     std::mutex imageMutex;
-    std::shared_ptr<rclcpp::Subscription<sensor_msgs::msg::Image>> imageSub;
+    std::list<std::shared_ptr<rclcpp::Subscription<sensor_msgs::msg::Image>>> imageSubs;
+    std::string selectedImageTopic = "/plane1/image_processed";
+    std::mutex selectedTopicMutex;
     QImage latestImage;
 
     // Guidance
@@ -278,6 +282,45 @@ RosBridgeNode::RosBridgeNode(QObject* parent) : QObject(parent), _impl(std::make
     _impl->guidanceCmdPub =
         _impl->node->create_publisher<savasan_general::msg::GuidanceCommand>("guidance/command", rclcpp::QoS(10));
 
+    if (_impl->selectedImageTopic.empty()) {
+        if (!_image_topics.empty()) {
+            _impl->selectedImageTopic = _image_topics[0].toStdString();
+        } else {
+            _impl->selectedImageTopic = "";
+        }
+    }
+
+    for (const QString& image_topic : _image_topics) {
+        qDebug() << "image_topic:" << image_topic;
+
+        auto imageSub = _impl->node->create_subscription<sensor_msgs::msg::Image>(
+            image_topic.toStdString(), rclcpp::QoS(10),
+            [this, image_topic](sensor_msgs::msg::Image::ConstSharedPtr msg) {
+                std::string selected;
+                {
+                    std::lock_guard<std::mutex> lock(_impl->selectedTopicMutex);
+                    selected = _impl->selectedImageTopic;
+                }
+
+                if (image_topic != selected) {
+                    return;
+                }
+                QImage img = rosImageToQImage(*msg);
+                if (img.isNull()) {
+                    return;
+                }
+
+                {
+                    std::lock_guard<std::mutex> lock(_impl->imageMutex);
+                    _impl->latestImage = img;
+                }
+
+                ++_imageRevision;
+                QMetaObject::invokeMethod(this, [this]() { emit imageRevisionChanged(); }, Qt::QueuedConnection);
+            });
+        _impl->imageSubs.push_back(imageSub);
+    }
+
     // executor to spin the node in the background
     _impl->executor = std::make_shared<rclcpp::executors::MultiThreadedExecutor>(rclcpp::ExecutorOptions(), 2);
     _impl->executor->add_node(_impl->node);
@@ -468,6 +511,10 @@ int RosBridgeNode::setKonumHandlingConfig(int target_id, bool fixed_target)
 #endif
 }
 
+void RosBridgeNode::setSelectedImageTopic(const QString& topic){
+    _impl->selectedImageTopic = topic.toStdString();
+}
+
 #ifdef ROSBRIDGE_ENABLE_ROS
 static QImage rosImageToQImage(const sensor_msgs::msg::Image& msg)
 {
@@ -499,31 +546,6 @@ static QImage rosImageToQImage(const sensor_msgs::msg::Image& msg)
         return img.copy();
     }
     return QImage();
-}
-
-void RosBridgeNode::subscribeImageTopic(const QString& topicName)
-{
-    if (!_impl->node || _impl->imageSub) {
-        return;
-    }
-
-    const std::string topic = topicName.toStdString();
-
-    _impl->imageSub = _impl->node->create_subscription<sensor_msgs::msg::Image>(
-        topic, rclcpp::QoS(10), [this](sensor_msgs::msg::Image::ConstSharedPtr msg) {
-            QImage img = rosImageToQImage(*msg);
-            if (img.isNull()) {
-                return;
-            }
-
-            {
-                std::lock_guard<std::mutex> lock(_impl->imageMutex);
-                _impl->latestImage = img;
-            }
-
-            ++_imageRevision;
-            QMetaObject::invokeMethod(this, [this]() { emit imageRevisionChanged(); }, Qt::QueuedConnection);
-        });
 }
 
 QImage RosBridgeNode::latestImage() const

@@ -31,6 +31,8 @@ Item {
     property string _messageText:           ""
     property real   _toolsMargin:           ScreenTools.defaultFontPixelWidth * 3
 
+    property var _rosBridge: QGroundControl.rosBridge
+
     /**
      * Calculate tool insets based on panel states
      * These tell the map what screen areas are occupied by UI so it doesn't pan under them
@@ -401,7 +403,6 @@ Item {
         }
 
         Component.onCompleted: {
-            RosBridgeNode.subscribeImageTopic("/plane1/image_processed")
             rosImage.source = "image://ros/plane1/image_processed?" + Math.random()
 
             if (rosImage.implicitWidth > 0 && rosImage.implicitHeight > 0) {
@@ -615,6 +616,34 @@ Item {
                 color: qgcPal.text
                 visible: rosImage.status === Image.Null || rosImage.status === Image.Error
                 font.pixelSize: ScreenTools.defaultFontPixelHeight * 1.2
+            }
+        }
+
+        // image topics combobox - positioned at bottom of panel
+        ComboBox {
+            id: imageTopicsCombobox
+            anchors.left: parent.left
+            anchors.right: parent.right
+            anchors.bottom: resizeHandle.top
+            anchors.leftMargin: ScreenTools.defaultFontPixelWidth * 0.5
+            anchors.rightMargin: resizeHandle.width
+            anchors.bottomMargin: ScreenTools.defaultFontPixelHeight * 0.5
+            height: ScreenTools.defaultFontPixelHeight * 1.8
+            model: _rosBridge.image_topics
+            visible: root.imagePanelOpen && !root.imagePanelMaximized
+
+            delegate: ItemDelegate {
+                width: imageTopicsCombobox.width
+                text: modelData
+                highlighted: imageTopicsCombobox.highlightedIndex === index
+            }
+
+            onActivated: function(index) {
+                if (index >= 0 && index < model.length) {
+                    var topic = model[index]
+                    console.log("Image topic changed to:", topic)
+                    _rosBridge.setSelectedImageTopic(topic)
+                }
             }
         }
 

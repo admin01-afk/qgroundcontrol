@@ -134,15 +134,15 @@ ToolIndicatorPage {
                         anchors.fill: parent
 
                         onClicked: (mouse) => {
-                            if (mouse.modifiers & Qt.ControlModifier) {
+                            var modifiers = mouse.modifiers
+                            if ((modifiers & Qt.ControlModifier) !== 0) {
                                 QGroundControl.corePlugin.showTouchAreas = !QGroundControl.corePlugin.showTouchAreas
-                                showTouchAreasNotification.open()
-                            } else if (ScreenTools.isMobile || mouse.modifiers & Qt.ShiftModifier) {
-                                mainWindow.closeIndicatorDrawer()
+                                mainWindow.openShowTouchAreasNotification()
+                            } else {
                                 if (!QGroundControl.corePlugin.showAdvancedUI) {
-                                    advancedModeOnConfirmation.open()
+                                    mainWindow.openAdvancedModeOnConfirmation()
                                 } else {
-                                    advancedModeOffConfirmation.open()
+                                    mainWindow.openAdvancedModeOffConfirmation()
                                 }
                             }
                         }
@@ -150,7 +150,7 @@ ToolIndicatorPage {
                         // This allows you to change this on mobile
                         onPressAndHold: {
                             QGroundControl.corePlugin.showTouchAreas = !QGroundControl.corePlugin.showTouchAreas
-                            showTouchAreasNotification.open()
+                            mainWindow.openShowTouchAreasNotification()
                         }
                     }
                 }

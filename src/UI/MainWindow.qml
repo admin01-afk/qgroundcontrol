@@ -372,6 +372,18 @@ ApplicationWindow {
         }
     }
 
+    function openShowTouchAreasNotification() {
+        showTouchAreasNotification.open()
+    }
+
+    function openAdvancedModeOnConfirmation() {
+        advancedModeOnConfirmation.open()
+    }
+
+    function openAdvancedModeOffConfirmation() {
+        advancedModeOffConfirmation.open()
+    }
+
     function showToolSelectDialog() {
         if (mainWindow.allowViewSwitch()) {
             mainWindow.showIndicatorDrawer(toolSelectComponent, null)

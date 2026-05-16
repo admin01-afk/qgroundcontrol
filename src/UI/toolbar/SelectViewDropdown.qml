@@ -9,6 +9,7 @@ ToolIndicatorPage {
     id: root
 
     property real _toolButtonHeight: ScreenTools.defaultFontPixelHeight * 3
+    property var    _activeVehicle:     QGroundControl.multiVehicleManager.activeVehicle
 
     contentComponent: Component {
         GridLayout {
@@ -152,6 +153,15 @@ ToolIndicatorPage {
                             QGroundControl.corePlugin.showTouchAreas = !QGroundControl.corePlugin.showTouchAreas
                             mainWindow.openShowTouchAreasNotification()
                         }
+                    }
+                }
+
+                QGCButton {
+                    text: qsTr("Reboot Vehicle")
+                    visible: root._activeVehicle
+                    Layout.alignment: Qt.AlignHCenter
+                    onClicked: {
+                        _activeVehicle.rebootVehicle()
                     }
                 }
             }

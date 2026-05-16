@@ -383,39 +383,65 @@ SettingsPage {
                         text: qsTr("Send Parameters")
                         onClicked: {
                             const lat = parseFloat(latField.text)
-                        const lon = parseFloat(lonField.text)
-                        const pullUp = parseFloat(pullUpAltField.text)
-                        const heading = parseFloat(approachHeadingField.text)
-                        const dive = parseFloat(diveAngleField.text)
-                        const climb = parseFloat(climbBufferField.text)
-                        const reach = parseFloat(reachDistanceField.text)
+                            const lon = parseFloat(lonField.text)
+                            const pullUp = parseFloat(pullUpAltField.text)
+                            const heading = parseFloat(approachHeadingField.text)
+                            const dive = parseFloat(diveAngleField.text)
+                            const climb = parseFloat(climbBufferField.text)
+                            const reach = parseFloat(reachDistanceField.text)
 
-                        if (isNaN(lat) || isNaN(lon) || isNaN(pullUp) || isNaN(heading) || isNaN(dive) || isNaN(climb) || isNaN(reach)) {
-                            console.warn("Invalid parameter values")
-                            return
-                        }
+                            if (isNaN(lat) || isNaN(lon) || isNaN(pullUp) || isNaN(heading) || isNaN(dive) || isNaN(climb) || isNaN(reach)) {
+                                function richValue(value) {
+                                    return isNaN(value)
+                                        ? '<span style="color:red">NaN</span>'
+                                        : '<span style="color:#ffffff">' + value + '</span>'
+                                }
 
-                        const diveStart = parseFloat(diveStartAltField.text)
-                        const pitchP = parseFloat(pitchPGainField.text)
-                        const pitchI = parseFloat(pitchIGainField.text)
-                        const pitchD = parseFloat(pitchDGainField.text)
-                        const rollP = parseFloat(rollPGainField.text)
-                        const rollI = parseFloat(rollIGainField.text)
-                        const rollD = parseFloat(rollDGainField.text)
+                                function styledLine(label, value) {
+                                    return '<span style="color:#80bfff">' + label + '</span> ' + richValue(value)
+                                }
 
-                        if (isNaN(diveStart) || isNaN(pitchP) || isNaN(pitchI) || isNaN(pitchD) || isNaN(rollP) || isNaN(rollI) || isNaN(rollD)) {
-                            console.warn("Invalid advanced parameter values")
-                            return
-                        }
+                                const message = '<p>' +
+                                    '<b>' + qsTr('Invalid parameter values:') + '</b><br/>' +
+                                    styledLine(qsTr('lat:'), lat) + '<br/>' +
+                                    styledLine(qsTr('lon:'), lon) + '<br/>' +
+                                    styledLine(qsTr('pullUp:'), pullUp) + '<br/>' +
+                                    styledLine(qsTr('heading:'), heading) + '<br/>' +
+                                    styledLine(qsTr('dive:'), dive) + '<br/>' +
+                                    styledLine(qsTr('climb:'), climb) + '<br/>' +
+                                    styledLine(qsTr('reach:'), reach) +
+                                    '</p>'
+                                console.warn(message)
+                                QGroundControl.showMessageDialog(
+                                    mainWindow,
+                                    qsTr("Error"),
+                                    message,
+                                    Dialog.Ok
+                                )
+                                return
+                            }
 
-                        page._rosBridge.setKamikazeParams(
-                            lat, lon,
-                            pullUp, heading, dive, climb, reach,
-                            page._advancedExpanded,
-                            diveStart,
-                            pitchP, pitchI, pitchD,
-                            rollP, rollI, rollD
-                        )
+                            const diveStart = parseFloat(diveStartAltField.text)
+                            const pitchP = parseFloat(pitchPGainField.text)
+                            const pitchI = parseFloat(pitchIGainField.text)
+                            const pitchD = parseFloat(pitchDGainField.text)
+                            const rollP = parseFloat(rollPGainField.text)
+                            const rollI = parseFloat(rollIGainField.text)
+                            const rollD = parseFloat(rollDGainField.text)
+
+                            if (isNaN(diveStart) || isNaN(pitchP) || isNaN(pitchI) || isNaN(pitchD) || isNaN(rollP) || isNaN(rollI) || isNaN(rollD)) {
+                                console.warn("Invalid advanced parameter values")
+                                return
+                            }
+
+                            page._rosBridge.setKamikazeParams(
+                                lat, lon,
+                                pullUp, heading, dive, climb, reach,
+                                page._advancedExpanded,
+                                diveStart,
+                                pitchP, pitchI, pitchD,
+                                rollP, rollI, rollD
+                            )
                         }
                     }
                 }

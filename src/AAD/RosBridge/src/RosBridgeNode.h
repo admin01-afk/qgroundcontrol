@@ -45,12 +45,14 @@ public:
     Q_INVOKABLE int startKamikaze() { return callService("/plane1/start_kamikaze"); }
     Q_INVOKABLE int abortKamikaze() { return callService("/plane1/abort_kamikaze"); }
 
-    Q_INVOKABLE int setKamikazeParams(double pullUpAltitude, double approachHeadingDeg,
-                                    double diveAngleDeg, double climbBufferDistance,
-                                    bool setAdvancedParams, double diveStartAltitude,
-                                    double maxDiveAngleDeg, double minDiveAngleDeg,
-                                    double maxRollAngleDeg, double rollDeadbandDeg,
-                                    double rollPGain);
+    Q_INVOKABLE int setKamikazeParams(double latitude, double longitude,
+                                      double pullUpAltitude, double approachHeadingDeg,
+                                      double diveAngleDeg, double climbBufferDistance,
+                                      double reachDistance, bool setAdvancedParams,
+                                      double diveStartAltitude, double pitchPGain,
+                                      double pitchIGain, double pitchDGain,
+                                      double rollPGain, double rollIGain,
+                                      double rollDGain);
 
     Q_INVOKABLE int setKonumHandlingConfig(int target, bool fixed_target);
 

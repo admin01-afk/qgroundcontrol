@@ -389,10 +389,12 @@ int RosBridgeNode::callService(const QString& serviceNameQ)
 #endif
 }
 
-int RosBridgeNode::setKamikazeParams(double pullUpAltitude, double approachHeadingDeg, double diveAngleDeg,
-                                     double climbBufferDistance, bool setAdvancedParams, double diveStartAltitude,
-                                     double maxDiveAngleDeg, double minDiveAngleDeg, double maxRollAngleDeg,
-                                     double rollDeadbandDeg, double rollPGain)
+int RosBridgeNode::setKamikazeParams(double latitude, double longitude, double pullUpAltitude,
+                                     double approachHeadingDeg, double diveAngleDeg,
+                                     double climbBufferDistance, double reachDistance,
+                                     bool setAdvancedParams, double diveStartAltitude,
+                                     double pitchPGain, double pitchIGain, double pitchDGain,
+                                     double rollPGain, double rollIGain, double rollDGain)
 {
 #ifdef ROSBRIDGE_ENABLE_ROS
     const int requestId = _impl->nextRequestId++;
@@ -408,17 +410,21 @@ int RosBridgeNode::setKamikazeParams(double pullUpAltitude, double approachHeadi
     }
 
     auto request = std::make_shared<savasan_general::srv::SetKamikazeParams::Request>();
+    request->lat = latitude;
+    request->lon = longitude;
     request->pull_up_altitude = pullUpAltitude;
     request->approach_heading_deg = approachHeadingDeg;
     request->dive_angle_deg = diveAngleDeg;
     request->climb_buffer_distance = climbBufferDistance;
+    request->reach_dist = reachDistance;
     request->set_advanced_params = setAdvancedParams;
     request->dive_start_altitude = diveStartAltitude;
-    request->max_dive_angle_deg = maxDiveAngleDeg;
-    request->min_dive_angle_deg = minDiveAngleDeg;
-    request->max_roll_angle_deg = maxRollAngleDeg;
-    request->roll_deadband_deg = rollDeadbandDeg;
-    request->roll_p_gain = rollPGain;
+    request->pitch_kp = pitchPGain;
+    request->pitch_ki = pitchIGain;
+    request->pitch_kd = pitchDGain;
+    request->roll_kp = rollPGain;
+    request->roll_ki = rollIGain;
+    request->roll_kd = rollDGain;
 
     client->async_send_request(
         request, [this, requestId](rclcpp::Client<savasan_general::srv::SetKamikazeParams>::SharedFuture future) {
@@ -438,10 +444,21 @@ int RosBridgeNode::setKamikazeParams(double pullUpAltitude, double approachHeadi
     return requestId;
 
 #else
+    Q_UNUSED(latitude);
+    Q_UNUSED(longitude);
     Q_UNUSED(pullUpAltitude);
     Q_UNUSED(approachHeadingDeg);
     Q_UNUSED(diveAngleDeg);
     Q_UNUSED(climbBufferDistance);
+    Q_UNUSED(reachDistance);
+    Q_UNUSED(setAdvancedParams);
+    Q_UNUSED(diveStartAltitude);
+    Q_UNUSED(pitchPGain);
+    Q_UNUSED(pitchIGain);
+    Q_UNUSED(pitchDGain);
+    Q_UNUSED(rollPGain);
+    Q_UNUSED(rollIGain);
+    Q_UNUSED(rollDGain);
     QMetaObject::invokeMethod(
         this, [this]() { emit serviceResult(-1, false, QStringLiteral("ROS not available in QGC build")); },
         Qt::QueuedConnection);
@@ -508,7 +525,7 @@ void RosBridgeNode::setSelectedImageTopic(const QString& topic){
             changed = true;
         }
     }
-    
+
     if (changed) {
         emit selectedImageTopicChanged();
     }

@@ -161,6 +161,24 @@ SettingsPage {
                         inputMethodHints: Qt.ImhFormattedNumbersOnly
                     }
                 }
+
+                RowLayout {
+                    Layout.fillWidth: true
+                    spacing: ScreenTools.defaultFontPixelWidth
+
+                    QGCLabel {
+                        text: qsTr("Reach Distance (m)")
+                        Layout.minimumWidth: 180
+                        verticalAlignment: Text.AlignVCenter
+                    }
+
+                    QGCTextField {
+                        id: reachDistanceField
+                        Layout.fillWidth: true
+                        text: "15.0"
+                        inputMethodHints: Qt.ImhFormattedNumbersOnly
+                    }
+                }
             }
 
             // --- ADVANCED PARAMETERS PANEL ---
@@ -237,78 +255,59 @@ SettingsPage {
                         }
                     }
 
-                    // Max Dive Angle
+                    // Pitch P Gain
                     RowLayout {
                         Layout.fillWidth: true
                         spacing: ScreenTools.defaultFontPixelWidth
 
                         QGCLabel {
-                            text: qsTr("Max Dive Angle (°)")
+                            text: qsTr("Pitch P Gain")
                             Layout.minimumWidth: 180
                             verticalAlignment: Text.AlignVCenter
                         }
 
                         QGCTextField {
-                            id: maxDiveAngleField
+                            id: pitchPGainField
                             Layout.fillWidth: true
-                            text: "60.0"
+                            text: "1.5"
                             inputMethodHints: Qt.ImhFormattedNumbersOnly
                         }
                     }
 
-                    // Min Dive Angle
+                    // Pitch I Gain
                     RowLayout {
                         Layout.fillWidth: true
                         spacing: ScreenTools.defaultFontPixelWidth
 
                         QGCLabel {
-                            text: qsTr("Min Dive Angle (°)")
+                            text: qsTr("Pitch I Gain")
                             Layout.minimumWidth: 180
                             verticalAlignment: Text.AlignVCenter
                         }
 
                         QGCTextField {
-                            id: minDiveAngleField
+                            id: pitchIGainField
                             Layout.fillWidth: true
-                            text: "15.0"
+                            text: "0.05"
                             inputMethodHints: Qt.ImhFormattedNumbersOnly
                         }
                     }
 
-                    // Max Roll Angle
+                    // Pitch D Gain
                     RowLayout {
                         Layout.fillWidth: true
                         spacing: ScreenTools.defaultFontPixelWidth
 
                         QGCLabel {
-                            text: qsTr("Max Roll Angle (°)")
+                            text: qsTr("Pitch D Gain")
                             Layout.minimumWidth: 180
                             verticalAlignment: Text.AlignVCenter
                         }
 
                         QGCTextField {
-                            id: maxRollAngleField
+                            id: pitchDGainField
                             Layout.fillWidth: true
-                            text: "45.0"
-                            inputMethodHints: Qt.ImhFormattedNumbersOnly
-                        }
-                    }
-
-                    // Roll Deadband
-                    RowLayout {
-                        Layout.fillWidth: true
-                        spacing: ScreenTools.defaultFontPixelWidth
-
-                        QGCLabel {
-                            text: qsTr("Roll Deadband (°)")
-                            Layout.minimumWidth: 180
-                            verticalAlignment: Text.AlignVCenter
-                        }
-
-                        QGCTextField {
-                            id: rollDeadbandField
-                            Layout.fillWidth: true
-                            text: "3.0"
+                            text: "0.3"
                             inputMethodHints: Qt.ImhFormattedNumbersOnly
                         }
                     }
@@ -331,6 +330,44 @@ SettingsPage {
                             inputMethodHints: Qt.ImhFormattedNumbersOnly
                         }
                     }
+
+                    // Roll I Gain
+                    RowLayout {
+                        Layout.fillWidth: true
+                        spacing: ScreenTools.defaultFontPixelWidth
+
+                        QGCLabel {
+                            text: qsTr("Roll I Gain")
+                            Layout.minimumWidth: 180
+                            verticalAlignment: Text.AlignVCenter
+                        }
+
+                        QGCTextField {
+                            id: rollIGainField
+                            Layout.fillWidth: true
+                            text: "0.01"
+                            inputMethodHints: Qt.ImhFormattedNumbersOnly
+                        }
+                    }
+
+                    // Roll D Gain
+                    RowLayout {
+                        Layout.fillWidth: true
+                        spacing: ScreenTools.defaultFontPixelWidth
+
+                        QGCLabel {
+                            text: qsTr("Roll D Gain")
+                            Layout.minimumWidth: 180
+                            verticalAlignment: Text.AlignVCenter
+                        }
+
+                        QGCTextField {
+                            id: rollDGainField
+                            Layout.fillWidth: true
+                            text: "0.2"
+                            inputMethodHints: Qt.ImhFormattedNumbersOnly
+                        }
+                    }
                 }
             }
 
@@ -345,41 +382,40 @@ SettingsPage {
                     QGCButton {
                         text: qsTr("Send Parameters")
                         onClicked: {
-                            const pullUp = parseFloat(pullUpAltField.text)
-                            const heading = parseFloat(approachHeadingField.text)
-                            const dive = parseFloat(diveAngleField.text)
-                            const climb = parseFloat(climbBufferField.text)
+                            const lat = parseFloat(latField.text)
+                        const lon = parseFloat(lonField.text)
+                        const pullUp = parseFloat(pullUpAltField.text)
+                        const heading = parseFloat(approachHeadingField.text)
+                        const dive = parseFloat(diveAngleField.text)
+                        const climb = parseFloat(climbBufferField.text)
+                        const reach = parseFloat(reachDistanceField.text)
 
-                            if (isNaN(pullUp) || isNaN(heading) || isNaN(dive) || isNaN(climb)) {
-                                console.warn("Invalid parameter values")
-                                return
-                            }
+                        if (isNaN(lat) || isNaN(lon) || isNaN(pullUp) || isNaN(heading) || isNaN(dive) || isNaN(climb) || isNaN(reach)) {
+                            console.warn("Invalid parameter values")
+                            return
+                        }
 
-                            // If advanced panel is expanded, also validate and send advanced params
-                            if (page._advancedExpanded) {
-                                const diveStart = parseFloat(diveStartAltField.text)
-                                const maxDive = parseFloat(maxDiveAngleField.text)
-                                const minDive = parseFloat(minDiveAngleField.text)
-                                const maxRoll = parseFloat(maxRollAngleField.text)
-                                const rollDb = parseFloat(rollDeadbandField.text)
-                                const rollGain = parseFloat(rollPGainField.text)
+                        const diveStart = parseFloat(diveStartAltField.text)
+                        const pitchP = parseFloat(pitchPGainField.text)
+                        const pitchI = parseFloat(pitchIGainField.text)
+                        const pitchD = parseFloat(pitchDGainField.text)
+                        const rollP = parseFloat(rollPGainField.text)
+                        const rollI = parseFloat(rollIGainField.text)
+                        const rollD = parseFloat(rollDGainField.text)
 
-                                if (isNaN(diveStart) || isNaN(maxDive) || isNaN(minDive) ||
-                                    isNaN(maxRoll) || isNaN(rollDb) || isNaN(rollGain)) {
-                                    console.warn("Invalid advanced parameter values")
-                                    return
-                                }
+                        if (isNaN(diveStart) || isNaN(pitchP) || isNaN(pitchI) || isNaN(pitchD) || isNaN(rollP) || isNaN(rollI) || isNaN(rollD)) {
+                            console.warn("Invalid advanced parameter values")
+                            return
+                        }
 
-                                page._rosBridge.setKamikazeParams(
-                                    pullUp, heading, dive, climb,
-                                    true, diveStart, maxDive, minDive, maxRoll, rollDb, rollGain
-                                )
-                            } else {
-                                page._rosBridge.setKamikazeParams(
-                                    pullUp, heading, dive, climb,
-                                    false, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0
-                                )
-                            }
+                        page._rosBridge.setKamikazeParams(
+                            lat, lon,
+                            pullUp, heading, dive, climb, reach,
+                            page._advancedExpanded,
+                            diveStart,
+                            pitchP, pitchI, pitchD,
+                            rollP, rollI, rollD
+                        )
                         }
                     }
                 }
